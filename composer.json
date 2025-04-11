@@ -1,0 +1,78 @@
+{
+  "name": "calebdw/sql-entities",
+  "description": "Manage SQL entities in Laravel with ease.",
+  "keywords": [
+    "php",
+    "laravel",
+    "database",
+    "sql",
+    "entities"
+  ],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Caleb White",
+      "email": "cdwhite3@pm.me"
+    }
+  ],
+  "homepage": "https://github.com/calebdw/laravel-sql-entities",
+  "autoload": {
+    "psr-4": {
+      "CalebDW\\SqlEntities\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CalebDW\\SqlEntities\\Tests\\": "tests/",
+      "Workbench\\App\\": "workbench/app/",
+      "Workbench\\Database\\Entities\\": "workbench/database/entities/"
+    }
+  },
+  "require": {
+    "php": "^8.4",
+    "illuminate/contracts": "^11.0 || ^12.0",
+    "illuminate/database": "^11.0 || ^12.0",
+    "illuminate/support": "^11.0 || ^12.0"
+  },
+  "require-dev": {
+    "calebdw/larastan": "^3.0",
+    "laravel/pint": "^1.16.2",
+    "orchestra/testbench": "^9.0 || ^10.0",
+    "pestphp/pest": "^3.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "CalebDW\\SqlEntities\\ServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "scripts": {
+    "test:lint": "pint --test",
+    "test:lint-fix": "pint",
+    "test:static": "phpstan analyze --ansi -v",
+    "test:unit": "pest",
+    "test:coverage": [
+      "@putenv XDEBUG_MODE=coverage",
+      "pest --coverage"
+    ],
+    "test": [
+      "@test:static",
+      "@test:coverage"
+    ],
+    "post-autoload-dump": [
+      "@prepare"
+    ],
+    "prepare": "@php vendor/bin/testbench package:discover --ansi"
+  },
+  "prefer-stable": true,
+  "minimum-stability": "dev"
+}

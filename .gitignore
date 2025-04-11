@@ -1,0 +1,6 @@
+.phpunit.cache/
+coverage/
+vendor/
+.phpunit.result.cache
+.pint.cache
+composer.lock
