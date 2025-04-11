@@ -26,7 +26,8 @@
     "psr-4": {
       "CalebDW\\SqlEntities\\Tests\\": "tests/",
       "Workbench\\App\\": "workbench/app/",
-      "Workbench\\Database\\Entities\\": "workbench/database/entities/"
+      "Workbench\\Database\\Entities\\": "workbench/database/entities/",
+      "Workbench\\Database\\Factories\\": "workbench/database/factories/"
     }
   },
   "require": {
@@ -71,7 +72,11 @@
     "post-autoload-dump": [
       "@prepare"
     ],
-    "prepare": "@php vendor/bin/testbench package:discover --ansi"
+    "prepare": "@php vendor/bin/testbench package:discover --ansi",
+    "lint": [
+      "@php vendor/bin/pint --ansi",
+      "@php vendor/bin/phpstan analyse --verbose --ansi"
+    ]
   },
   "prefer-stable": true,
   "minimum-stability": "dev"
