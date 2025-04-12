@@ -1,5 +1,8 @@
+includes:
+  - vendor/calebdw/larastan/extension.neon
 parameters:
   level: 8
   paths:
     - src
     - workbench/app
+    - workbench/database
