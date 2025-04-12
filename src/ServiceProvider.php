@@ -19,7 +19,7 @@ class ServiceProvider extends IlluminateServiceProvider implements DeferrablePro
     #[Override]
     public function provides(): array
     {
-        return [EntityManager::class]; // @codeCoverageIgnore
+        return [EntityManager::class, 'sql-entities']; // @codeCoverageIgnore
     }
 
     #[Override]
@@ -28,6 +28,8 @@ class ServiceProvider extends IlluminateServiceProvider implements DeferrablePro
         $this->app->singleton(EntityManager::class, function (Application $app) {
             return new EntityManager($this->getEntities($app), $app->make('db'));
         });
+
+        $this->app->alias(EntityManager::class, 'sql-entities');
     }
 
     /** @return Collection<int, Entity> */
