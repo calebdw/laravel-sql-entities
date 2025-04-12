@@ -45,13 +45,21 @@ class EntityManager
         return $entity;
     }
 
-    /** @throws InvalidArgumentException if the entity is not found. */
+    /**
+     * Create an entity.
+     *
+     * @param class-string<Entity>|string|Entity $entity The entity name, class, or instance.
+     * @throws InvalidArgumentException if the entity is not found.
+     */
     public function create(Entity|string $entity): void
     {
         if (is_string($entity)) {
-            $entity = $this->get($entity);
+            $entity = class_exists($entity)
+                ? resolve($entity)
+                : $this->get($entity);
         }
 
+        assert($entity instanceof Entity);
         $connection = $this->connection($entity);
 
         if (! $entity->creating($connection)) {
@@ -64,13 +72,21 @@ class EntityManager
         $entity->created($connection);
     }
 
-    /** @throws InvalidArgumentException if the entity is not found. */
+    /**
+     * Drop an entity.
+     *
+     * @param class-string<Entity>|string|Entity $entity The entity name, class, or instance.
+     * @throws InvalidArgumentException if the entity is not found.
+     */
     public function drop(Entity|string $entity): void
     {
         if (is_string($entity)) {
-            $entity = $this->get($entity);
+            $entity = class_exists($entity)
+                ? resolve($entity)
+                : $this->get($entity);
         }
 
+        assert($entity instanceof Entity);
         $connection = $this->connection($entity);
 
         if (! $entity->dropping($connection)) {

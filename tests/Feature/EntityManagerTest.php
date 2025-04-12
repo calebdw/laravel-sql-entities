@@ -59,6 +59,7 @@ describe('create', function () {
         test()->manager->create($entity);
     })->with([
         'name'   => 'users_view',
+        'class'  => UserView::class,
         'entity' => new UserView(),
     ]);
 
@@ -85,6 +86,7 @@ describe('drop', function () {
         test()->manager->drop($entity);
     })->with([
         'name'   => 'users_view',
+        'class'  => UserView::class,
         'entity' => new UserView(),
     ]);
 
