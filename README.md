@@ -12,6 +12,27 @@
   </p>
 </div>
 
+## Motivation
+
+Laravel's schema builder and migration system are great for managing tables and
+indexes---but offer no built-in support for other SQL entities, such as
+(materialized) views, procedures, functions, and triggers.
+These often get handled via raw SQL in migrations, making them hard to manage,
+prone to unknown conflicts, and difficult to track over time.
+
+`laravel-sql-entities` solves this by offering:
+
+- 📦 Class-based definitions for SQL entities: bringing views, functions, triggers, and more into your application code.
+- 🧠 First-class source control: definitions live in PHP files, so you can track changes, review diffs in PRs, and resolve conflicts easily.
+- 🧱 Decoupled grammars per database: letting you support multiple drivers (e.g., PostgreSQL) without cluttering your logic with dialect-specific SQL.
+- 🔁 Lifecycle hooks: run logic before/after an entity is created or dropped, enabling logging, auditing, or cleanup.
+- 🚀 Batch operations: easily create or drop all entities in a single command or lifecycle event.
+- 🧪 Testability: because definitions are just code, they’re easy to test, validate, and keep consistent with your schema.
+
+Whether you're managing reporting views, business logic functions, or automation
+triggers, this package helps you treat SQL entities like real, versioned parts
+of your codebase---no more scattered SQL in migrations!
+
 ## Installation
 
 First pull in the package using Composer:
@@ -20,13 +41,33 @@ First pull in the package using Composer:
 composer require calebdw/laravel-sql-entities
 ```
 
-And then publish the package's configuration file:
+<!-- And then publish the package's configuration file: -->
+<!---->
+<!-- ```bash -->
+<!-- php artisan vendor:publish --provider="CalebDW\SqlEntities\ServiceProvider" -->
+<!-- ``` -->
 
-```bash
-php artisan vendor:publish --provider="CalebDW\SqlEntities\ServiceProvider"
+The package looks for Entities under `database/entities/` so you will need to add
+a namespace to your `composer.json` file, for example:
+
+```diff
+{
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
++     "Database\\Entities\\": "database/entities/",
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/"
+    }
+  }
+}
 ```
 
-## Configuration
+> [!NOTE]
+> This package looks for any files matching `database/entities` in the application's
+> base path. This means it should automatically work for a modular setup.
+
+<!-- ## Configuration -->
 
 ## Usage
 
@@ -39,3 +80,6 @@ Thank you for considering contributing! You can read the contribution guide [her
 This is open-sourced software licensed under the [MIT license](LICENSE).
 
 ## Alternatives
+
+- [laravel-sql-views](https://github.com/stats4sd/laravel-sql-views)
+- [laravel-migration-views](https://github.com/staudenmeir/laravel-migration-views)
