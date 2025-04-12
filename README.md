@@ -12,8 +12,6 @@
   </p>
 </div>
 
-## Motivation
-
 Laravel's schema builder and migration system are great for managing tables and
 indexes---but offer no built-in support for other SQL entities, such as
 (materialized) views, procedures, functions, and triggers.
@@ -32,6 +30,11 @@ prone to unknown conflicts, and difficult to track over time.
 Whether you're managing reporting views, business logic functions, or automation
 triggers, this package helps you treat SQL entities like real, versioned parts
 of your codebase---no more scattered SQL in migrations!
+
+> [!NOTE]
+> Migration rollbacks are not supported since the definitions always reflect the latest state.
+>
+> ["We're never going backwards. You only go forward." -Taylor Otwell](https://www.twitch.tv/theprimeagen/clip/DrabAltruisticEggnogVoHiYo-f6CVkrqraPsWrEht)
 
 ## Installation
 
