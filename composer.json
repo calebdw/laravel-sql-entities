@@ -69,10 +69,6 @@
       "@test:static",
       "@test:coverage"
     ],
-    "post-autoload-dump": [
-      "@prepare"
-    ],
-    "prepare": "@php vendor/bin/testbench package:discover --ansi",
     "lint": [
       "@php vendor/bin/pint --ansi",
       "@php vendor/bin/phpstan analyse --verbose --ansi"
