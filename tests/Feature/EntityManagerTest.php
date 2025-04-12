@@ -48,31 +48,57 @@ describe('get', function () {
     })->throws(InvalidArgumentException::class, 'Entity [unknown] not found.');
 });
 
-it('creates an entity', function (string|Entity $entity) {
-    test()->connection
-        ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
-        ->shouldReceive('statement')
-        ->once()
-        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
+describe('create', function () {
+    it('creates an entity', function (string|Entity $entity) {
+        test()->connection
+            ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+            ->shouldReceive('statement')
+            ->once()
+            ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
 
-    test()->manager->create($entity);
-})->with([
-    'name'   => 'users_view',
-    'entity' => new UserView(),
-]);
+        test()->manager->create($entity);
+    })->with([
+        'name'   => 'users_view',
+        'entity' => new UserView(),
+    ]);
 
-it('drops an entity', function (string|Entity $entity) {
-    test()->connection
-        ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
-        ->shouldReceive('statement')
-        ->once()
-        ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
+    it('can skip creation', function () {
+        $entity = new UserView();
 
-    test()->manager->drop($entity);
-})->with([
-    'name'   => 'users_view',
-    'entity' => new UserView(),
-]);
+        test()->connection
+            ->shouldNotReceive('getDriverName')
+            ->shouldNotReceive('statement');
+
+        $entity->shouldCreate = false;
+        test()->manager->create($entity);
+    });
+});
+
+describe('drop', function () {
+    it('drops an entity', function (string|Entity $entity) {
+        test()->connection
+            ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
+            ->shouldReceive('statement')
+            ->once()
+            ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
+
+        test()->manager->drop($entity);
+    })->with([
+        'name'   => 'users_view',
+        'entity' => new UserView(),
+    ]);
+
+    it('can skip dropping', function () {
+        $entity = new UserView();
+
+        test()->connection
+            ->shouldNotReceive('getDriverName')
+            ->shouldNotReceive('statement');
+
+        $entity->shouldDrop = false;
+        test()->manager->drop($entity);
+    });
+});
 
 it('creates entities by type and connection', function () {
     test()->connection

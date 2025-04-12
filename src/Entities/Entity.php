@@ -22,9 +22,14 @@ abstract class Entity implements Stringable
         return null;
     }
 
-    /** Hook before creating the entity. */
-    public function creating(Connection $connection): void
+    /**
+     * Hook before creating the entity.
+     *
+     * @return bool true to create the entity, false to skip.
+     */
+    public function creating(Connection $connection): bool
     {
+        return true;
     }
 
     /** Hook after creating the entity. */
@@ -32,9 +37,14 @@ abstract class Entity implements Stringable
     {
     }
 
-    /** Hook before dropping the entity. */
-    public function dropping(Connection $connection): void
+    /**
+     * Hook before dropping the entity.
+     *
+     * @return bool true to drop the entity, false to skip.
+     */
+    public function dropping(Connection $connection): bool
     {
+        return true;
     }
 
     /** Hook after dropping the entity. */

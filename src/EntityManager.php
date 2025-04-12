@@ -53,9 +53,13 @@ class EntityManager
         }
 
         $connection = $this->connection($entity);
-        $grammar    = $this->grammar($connection);
 
-        $entity->creating($connection);
+        if (! $entity->creating($connection)) {
+            return;
+        }
+
+        $grammar = $this->grammar($connection);
+
         $connection->statement($grammar->compileCreate($entity));
         $entity->created($connection);
     }
@@ -68,9 +72,13 @@ class EntityManager
         }
 
         $connection = $this->connection($entity);
-        $grammar    = $this->grammar($connection);
 
-        $entity->dropping($connection);
+        if (! $entity->dropping($connection)) {
+            return;
+        }
+
+        $grammar = $this->grammar($connection);
+
         $connection->statement($grammar->compileDrop($entity));
         $entity->dropped($connection);
     }
