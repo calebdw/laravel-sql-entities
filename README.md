@@ -20,12 +20,12 @@ prone to unknown conflicts, and difficult to track over time.
 
 `laravel-sql-entities` solves this by offering:
 
-- 📦 Class-based definitions for SQL entities: bringing views, functions, triggers, and more into your application code.
-- 🧠 First-class source control: definitions live in PHP files, so you can track changes, review diffs in PRs, and resolve conflicts easily.
-- 🧱 Decoupled grammars per database: letting you support multiple drivers (e.g., PostgreSQL) without cluttering your logic with dialect-specific SQL.
-- 🔁 Lifecycle hooks: run logic before/after an entity is created or dropped, enabling logging, auditing, or cleanup.
+- 📦 Class-based definitions: bringing views, functions, triggers, and more into your application code.
+- 🧠 First-class source control: you can easily track changes, review diffs, and resolve conflicts.
+- 🧱 Decoupled grammars: letting you support multiple drivers without needing dialect-specific SQL.
+- 🔁 Lifecycle hooks: run logic at various points, enabling logging, auditing, and more.
 - 🚀 Batch operations: easily create or drop all entities in a single command or lifecycle event.
-- 🧪 Testability: because definitions are just code, they’re easy to test, validate, and keep consistent with your schema.
+- 🧪 Testability: definitions are just code so they’re easy to test, validate, and keep consistent.
 
 Whether you're managing reporting views, business logic functions, or automation
 triggers, this package helps you treat SQL entities like real, versioned parts
@@ -36,7 +36,7 @@ of your codebase---no more scattered SQL in migrations!
 >
 > ["We're never going backwards. You only go forward." -Taylor Otwell](https://www.twitch.tv/theprimeagen/clip/DrabAltruisticEggnogVoHiYo-f6CVkrqraPsWrEht)
 
-## Installation
+## 📦 Installation
 
 First pull in the package using Composer:
 
@@ -50,7 +50,7 @@ composer require calebdw/laravel-sql-entities
 <!-- php artisan vendor:publish --provider="CalebDW\SqlEntities\ServiceProvider" -->
 <!-- ``` -->
 
-The package looks for Entities under `database/entities/` so you will need to add
+The package looks for SQL entities under `database/entities/` so you might need to add
 a namespace to your `composer.json` file, for example:
 
 ```diff
@@ -68,21 +68,176 @@ a namespace to your `composer.json` file, for example:
 
 > [!TIP]
 > This package looks for any files matching `database/entities` in the application's
-> base path. This means it should automatically work for a modular setup.
+> base path. This means it should automatically work for a modular setup where
+> the entities might be spread across multiple directories.
 
 <!-- ## Configuration -->
 
-## Usage
+## 🛠️ Usage
 
-## Contributing
+### 🧱 SQL Entities
+
+To get started, create a new class in a `database/entities/` directory
+(structure is up to you) and extend the appropriate entity class (e.g. `View`, etc.).
+
+For example, to create a view for recent orders, you might create the following class:
+
+```php
+<?php
+
+namespace Database\Entities\Views;
+
+use App\Models\Order;
+use CalebDW\SqlEntities\View;
+use Illuminate\Database\Query\Builder;
+use Override;
+
+// will create a view named `recent_orders_view`
+class RecentOrdersView extends View
+{
+    #[Override]
+    public function definition(): Builder|string
+    {
+        return Order::query()
+            ->select(['id', 'customer_id', 'status', 'created_at'])
+            ->where('created_at', '>=', now()->subDays(30))
+            ->toBase();
+
+        // could also use raw SQL
+        return <<<'SQL'
+            SELECT id, customer_id, status, created_at
+            FROM orders
+            WHERE created_at >= NOW() - INTERVAL '30 days'
+            SQL;
+    }
+}
+```
+
+You can also override the name and connection:
+
+```php
+<?php
+class RecentOrdersView extends View
+{
+    protected ?string $name = 'other_name';
+    // also supports schema
+    protected ?string $name = 'other_schema.other_name';
+
+    protected ?string $connection = 'other_connection';
+}
+```
+
+#### 🔁 Lifecycle Hooks
+
+You can also use the provided lifecycle hooks to run logic before or after an entity is created or dropped.
+Returning `false` from the `creating` or `dropping` methods will prevent the entity from being created or dropped, respectively.
+
+```php
+<?php
+use Illuminate\Database\Connection;
+
+class RecentOrdersView extends View
+{
+    // ...
+
+    #[Override]
+    public function creating(Connection $connection): bool
+    {
+        if (/** should not create */) {
+            return false;
+        }
+
+        /** other logic */
+
+        return true;
+    }
+
+    #[Override]
+    public function created(Connection $connection): void
+    {
+        $this->connection->statement(<<<SQL
+            GRANT SELECT ON TABLE {$this->name()} TO other_user;
+            SQL);
+    }
+
+    #[Override]
+    public function dropping(Connection $connection): bool
+    {
+        if (/** should not drop */) {
+            return false;
+        }
+
+        /** other logic */
+
+        return true;
+    }
+
+    #[Override]
+    public function dropped(Connection $connection): void
+    {
+        /** logic */
+    }
+}
+```
+
+### 🧠 Manager
+
+The `SqlEntityManager` singleton is responsible for creating and dropping SQL entities at runtime.
+You can interact with it directly, or use the `SqlEntity` facade for convenience.
+
+```php
+<?php
+use CalebDW\SqlEntities\Facades\SqlEntity;
+use CalebDW\SqlEntities\SqlEntityManager;
+use CalebDW\SqlEntities\View;
+
+// Create a single entity by name, class, or instance
+SqlEntity::create('recent_orders_view');
+resolve(SqlEntityManager::class)->create(RecentOrdersView::class);
+resolve('sql-entities')->create(new RecentOrdersView());
+
+// Similarly, you can drop a single entity using the name, class, or instance
+SqlEntity::drop(RecentOrdersView::class);
+
+// Create or drop all entities
+SqlEntity::createAll();
+SqlEntity::dropAll();
+
+// You can also filter by type or connection
+SqlEntity::createAll(type: View::class, connection: 'reporting');
+SqlEntity::dropAll(type: View::class, connection: 'reporting');
+```
+
+### 🚀 Automatic syncing when migrating (Optional)
+
+You may want to automatically drop all SQL entities before migrating, and then
+recreate them after the migrations are complete. This is helpful when the entities
+depend on schema changes. To do this, register the built-in subscriber in a service provider:
+
+```php
+<?php
+use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        Event::subscribe(SyncSqlEntities::class);
+    }
+}
+```
+
+## 🤝 Contributing
 
 Thank you for considering contributing! You can read the contribution guide [here](CONTRIBUTING.md).
 
-## License
+## ⚖️ License
 
 This is open-sourced software licensed under the [MIT license](LICENSE).
 
-## Alternatives
+## 🔀 Alternatives
 
 - [laravel-sql-views](https://github.com/stats4sd/laravel-sql-views)
 - [laravel-migration-views](https://github.com/staudenmeir/laravel-migration-views)
