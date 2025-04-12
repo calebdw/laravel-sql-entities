@@ -15,12 +15,6 @@ class UserView extends View
     public bool $shouldDrop = true;
 
     #[Override]
-    public function name(): string
-    {
-        return 'users_view';
-    }
-
-    #[Override]
     public function definition(): string
     {
         return 'SELECT id, name FROM users';

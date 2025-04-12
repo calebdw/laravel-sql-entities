@@ -41,11 +41,6 @@ class TestGrammar extends Grammar
 
 class UnknownSqlEntity extends SqlEntity
 {
-    public function name(): string
-    {
-        return 'unknown_entity';
-    }
-
     public function definition(): Builder|string
     {
         return '';

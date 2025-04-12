@@ -16,7 +16,7 @@ it('compiles view drop', function () {
     $sql = test()->grammar->compileCreate(new UserView());
 
     expect($sql)->toBe(<<<'SQL'
-        CREATE VIEW users_view AS
+        CREATE VIEW user_view AS
         SELECT id, name FROM users
         SQL);
 });
@@ -25,6 +25,6 @@ it('compiles view create', function () {
     $sql = test()->grammar->compileDrop(new UserView());
 
     expect($sql)->toBe(<<<'SQL'
-        DROP VIEW IF EXISTS users_view
+        DROP VIEW IF EXISTS user_view
         SQL);
 });

@@ -32,13 +32,13 @@ it('loads the entities')
 
 describe('get', function () {
     it('returns the entity by name', function () {
-        $entity = test()->manager->get('users_view');
+        $entity = test()->manager->get('user_view');
 
         expect($entity)->toBeInstanceOf(UserView::class);
     });
 
     it('returns the entity by name and connection', function () {
-        $entity = test()->manager->get('users_view', 'foo');
+        $entity = test()->manager->get('user_view', 'foo');
 
         expect($entity)->toBeInstanceOf(FooConnectionUserView::class);
     });
@@ -58,7 +58,7 @@ describe('create', function () {
 
         test()->manager->create($entity);
     })->with([
-        'name'   => 'users_view',
+        'name'   => 'user_view',
         'class'  => UserView::class,
         'entity' => new UserView(),
     ]);
@@ -85,7 +85,7 @@ describe('drop', function () {
 
         test()->manager->drop($entity);
     })->with([
-        'name'   => 'users_view',
+        'name'   => 'user_view',
         'class'  => UserView::class,
         'entity' => new UserView(),
     ]);

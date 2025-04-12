@@ -12,7 +12,7 @@ class FooConnectionUserView extends View
     #[Override]
     public function name(): string
     {
-        return 'users_view';
+        return 'user_view';
     }
 
     #[Override]

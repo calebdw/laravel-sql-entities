@@ -27,11 +27,6 @@ class Foo extends Model
 
 class FooEntity extends SqlEntity
 {
-    public function name(): string
-    {
-        return 'foo_entity';
-    }
-
     public function definition(): Builder|string
     {
         return Foo::query()

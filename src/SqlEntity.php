@@ -6,15 +6,19 @@ namespace CalebDW\SqlEntities;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Str;
 use Stringable;
 
 abstract class SqlEntity implements Stringable
 {
-    /** The entity name. */
-    abstract public function name(): string;
-
     /** The entity definition. */
     abstract public function definition(): Builder|string;
+
+    /** The entity name. */
+    public function name(): string
+    {
+        return Str::snake(class_basename($this));
+    }
 
     /** The entity connection name. */
     public function connectionName(): ?string
