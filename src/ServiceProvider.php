@@ -19,7 +19,7 @@ class ServiceProvider extends IlluminateServiceProvider implements DeferrablePro
     #[Override]
     public function provides(): array
     {
-        return [EntityManager::class];
+        return [EntityManager::class]; // @codeCoverageIgnore
     }
 
     #[Override]

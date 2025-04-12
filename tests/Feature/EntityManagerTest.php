@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+use CalebDW\SqlEntities\Entities\Entity;
+use CalebDW\SqlEntities\Entities\View;
+use CalebDW\SqlEntities\EntityManager;
+use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
+use Workbench\Database\Entities\views\FooConnectionUserView;
+use Workbench\Database\Entities\views\UserView;
+
+beforeEach(function () {
+    test()->connection = test()->mock(Connection::class);
+
+    $db = test()->mock(DatabaseManager::class)
+        ->shouldReceive('connection')
+        ->andReturn(test()->connection)
+        ->getMock();
+    app()->instance('db', $db);
+
+    test()->manager = resolve(EntityManager::class);
+});
+
+afterEach(function () {
+    Mockery::close();
+});
+
+it('loads the entities')
+    ->expect(test()->manager->entities)
+    ->not->toBeEmpty();
+
+describe('get', function () {
+    it('returns the entity by name', function () {
+        $entity = test()->manager->get('users_view');
+
+        expect($entity)->toBeInstanceOf(UserView::class);
+    });
+
+    it('returns the entity by name and connection', function () {
+        $entity = test()->manager->get('users_view', 'foo');
+
+        expect($entity)->toBeInstanceOf(FooConnectionUserView::class);
+    });
+
+    it('throws an exception for unknown entity', function () {
+        $entity = test()->manager->get('unknown');
+    })->throws(InvalidArgumentException::class, 'Entity [unknown] not found.');
+});
+
+it('creates an entity', function (string|Entity $entity) {
+    test()->connection
+        ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+        ->shouldReceive('statement')
+        ->once()
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
+
+    test()->manager->create($entity);
+})->with([
+    'name'   => 'users_view',
+    'entity' => new UserView(),
+]);
+
+it('drops an entity', function (string|Entity $entity) {
+    test()->connection
+        ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->once()
+        ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
+
+    test()->manager->drop($entity);
+})->with([
+    'name'   => 'users_view',
+    'entity' => new UserView(),
+]);
+
+it('creates entities by type and connection', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+        ->shouldReceive('statement')
+        ->once()
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
+
+    test()->manager->createAll(View::class, 'foo');
+});
+
+it('drops entities by type and connection', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->once()
+        ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
+
+    test()->manager->dropAll(View::class, 'foo');
+});
+
+it('throws exception for unsupported driver', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')
+        ->andReturn('unknown');
+
+    resolve(EntityManager::class)->create(new UserView());
+})->throws(InvalidArgumentException::class, 'Unsupported driver [unknown].');
