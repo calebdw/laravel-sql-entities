@@ -66,7 +66,7 @@ a namespace to your `composer.json` file, for example:
 }
 ```
 
-> [!NOTE]
+> [!TIP]
 > This package looks for any files matching `database/entities` in the application's
 > base path. This means it should automatically work for a modular setup.
 
