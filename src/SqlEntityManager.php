@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
-use CalebDW\SqlEntities\Entities\Entity;
+use CalebDW\SqlEntities\SqlEntity;
 use CalebDW\SqlEntities\Grammars\Grammar;
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;
@@ -13,7 +13,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
-class EntityManager
+class SqlEntityManager
 {
     /**
      * The active grammar instances.
@@ -23,17 +23,17 @@ class EntityManager
     protected array $grammars = [];
 
     public function __construct(
-        /** @var Collection<int, Entity> */
+        /** @var Collection<int, SqlEntity> */
         public readonly Collection $entities,
         protected DatabaseManager $db,
     ) {
     }
 
     /** @throws InvalidArgumentException if the entity is not found. */
-    public function get(string $name, ?string $connection = null): Entity
+    public function get(string $name, ?string $connection = null): SqlEntity
     {
         $entity = $this->entities->firstWhere(
-            fn (Entity $e) => $e->name() === $name
+            fn (SqlEntity $e) => $e->name() === $name
                 && $e->connectionName() === $connection,
         );
 
@@ -48,10 +48,10 @@ class EntityManager
     /**
      * Create an entity.
      *
-     * @param class-string<Entity>|string|Entity $entity The entity name, class, or instance.
+     * @param class-string<SqlEntity>|string|SqlEntity $entity The entity name, class, or instance.
      * @throws InvalidArgumentException if the entity is not found.
      */
-    public function create(Entity|string $entity): void
+    public function create(SqlEntity|string $entity): void
     {
         if (is_string($entity)) {
             $entity = class_exists($entity)
@@ -59,7 +59,7 @@ class EntityManager
                 : $this->get($entity);
         }
 
-        assert($entity instanceof Entity);
+        assert($entity instanceof SqlEntity);
         $connection = $this->connection($entity);
 
         if (! $entity->creating($connection)) {
@@ -75,10 +75,10 @@ class EntityManager
     /**
      * Drop an entity.
      *
-     * @param class-string<Entity>|string|Entity $entity The entity name, class, or instance.
+     * @param class-string<SqlEntity>|string|SqlEntity $entity The entity name, class, or instance.
      * @throws InvalidArgumentException if the entity is not found.
      */
-    public function drop(Entity|string $entity): void
+    public function drop(SqlEntity|string $entity): void
     {
         if (is_string($entity)) {
             $entity = class_exists($entity)
@@ -86,7 +86,7 @@ class EntityManager
                 : $this->get($entity);
         }
 
-        assert($entity instanceof Entity);
+        assert($entity instanceof SqlEntity);
         $connection = $this->connection($entity);
 
         if (! $entity->dropping($connection)) {
@@ -99,7 +99,7 @@ class EntityManager
         $entity->dropped($connection);
     }
 
-    /** @param class-string<Entity>|null $type */
+    /** @param class-string<SqlEntity>|null $type */
     public function createAll(?string $type = null, ?string $connection = null): void
     {
         $this->entities
@@ -110,7 +110,7 @@ class EntityManager
             ->each(fn ($e) => $this->create($e));
     }
 
-    /** @param class-string<Entity>|null $type */
+    /** @param class-string<SqlEntity>|null $type */
     public function dropAll(?string $type = null, ?string $connection = null): void
     {
         $this->entities
@@ -121,7 +121,7 @@ class EntityManager
             ->each(fn ($e) => $this->drop($e));
     }
 
-    protected function connection(Entity $entity): Connection
+    protected function connection(SqlEntity $entity): Connection
     {
         return $this->db->connection($entity->connectionName());
     }

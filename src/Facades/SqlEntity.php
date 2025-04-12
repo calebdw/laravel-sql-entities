@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities\Facades;
 
-use CalebDW\SqlEntities\EntityManager;
+use CalebDW\SqlEntities\SqlEntityManager;
 use Illuminate\Support\Facades\Facade;
 use Override;
 
-/** @mixin EntityManager */
+/** @mixin SqlEntityManager */
 class SqlEntity extends Facade
 {
     #[Override]
     protected static function getFacadeAccessor(): string
     {
-        return EntityManager::class;
+        return SqlEntityManager::class;
     }
 }

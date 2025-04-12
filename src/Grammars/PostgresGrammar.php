@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities\Grammars;
 
-use CalebDW\SqlEntities\Entities\View;
+use CalebDW\SqlEntities\View;
 use Override;
 
 class PostgresGrammar extends Grammar

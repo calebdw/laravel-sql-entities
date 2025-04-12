@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Workbench\Database\Entities\views;
 
-use CalebDW\SqlEntities\Entities\View;
+use CalebDW\SqlEntities\View;
 use Override;
 
 class FooConnectionUserView extends View

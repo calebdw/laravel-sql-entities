@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\EntityManager;
-use CalebDW\SqlEntities\Listeners\SyncEntities;
+use CalebDW\SqlEntities\SqlEntityManager;
+use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Events\MigrationsStarted;
 use Mockery;
 
 beforeEach(function () {
-    test()->manager = Mockery::mock(EntityManager::class);
-    test()->listener = new SyncEntities(test()->manager);
+    test()->manager = Mockery::mock(SqlEntityManager::class);
+    test()->listener = new SyncSqlEntities(test()->manager);
 });
 
 afterEach(function () {

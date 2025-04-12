@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CalebDW\SqlEntities\Entities;
+namespace CalebDW\SqlEntities;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Stringable;
 
-abstract class Entity implements Stringable
+abstract class SqlEntity implements Stringable
 {
     /** The entity name. */
     abstract public function name(): string;

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities\Listeners;
 
-use CalebDW\SqlEntities\EntityManager;
+use CalebDW\SqlEntities\SqlEntityManager;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Events\MigrationsStarted;
 
-class SyncEntities
+class SyncSqlEntities
 {
     public function __construct(
-        protected EntityManager $manager,
+        protected SqlEntityManager $manager,
     ) {
     }
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities\Grammars;
 
-use CalebDW\SqlEntities\Entities\Entity;
-use CalebDW\SqlEntities\Entities\View;
+use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use InvalidArgumentException;
 
@@ -16,7 +16,7 @@ abstract class Grammar
     ) {
     }
 
-    public function compileCreate(Entity $entity): string
+    public function compileCreate(SqlEntity $entity): string
     {
         return match (true) {
             $entity instanceof View => $this->compileViewCreate($entity),
@@ -27,7 +27,7 @@ abstract class Grammar
         };
     }
 
-    public function compileDrop(Entity $entity): string
+    public function compileDrop(SqlEntity $entity): string
     {
         return match (true) {
             $entity instanceof View => $this->compileViewDrop($entity),

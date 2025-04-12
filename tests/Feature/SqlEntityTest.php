@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\Entities\Entity;
+use CalebDW\SqlEntities\SqlEntity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
@@ -25,7 +25,7 @@ class Foo extends Model
     protected $table = 'foo';
 }
 
-class FooEntity extends Entity
+class FooEntity extends SqlEntity
 {
     public function name(): string
     {

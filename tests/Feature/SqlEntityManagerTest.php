@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\Entities\Entity;
-use CalebDW\SqlEntities\Entities\View;
-use CalebDW\SqlEntities\EntityManager;
+use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\SqlEntityManager;
+use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Workbench\Database\Entities\views\FooConnectionUserView;
@@ -19,7 +19,7 @@ beforeEach(function () {
         ->getMock();
     app()->instance('db', $db);
 
-    test()->manager = resolve(EntityManager::class);
+    test()->manager = resolve(SqlEntityManager::class);
 });
 
 afterEach(function () {
@@ -49,7 +49,7 @@ describe('get', function () {
 });
 
 describe('create', function () {
-    it('creates an entity', function (string|Entity $entity) {
+    it('creates an entity', function (string|SqlEntity $entity) {
         test()->connection
             ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
             ->shouldReceive('statement')
@@ -76,7 +76,7 @@ describe('create', function () {
 });
 
 describe('drop', function () {
-    it('drops an entity', function (string|Entity $entity) {
+    it('drops an entity', function (string|SqlEntity $entity) {
         test()->connection
             ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
             ->shouldReceive('statement')
@@ -127,5 +127,5 @@ it('throws exception for unsupported driver', function () {
         ->shouldReceive('getDriverName')
         ->andReturn('unknown');
 
-    resolve(EntityManager::class)->create(new UserView());
+    resolve(SqlEntityManager::class)->create(new UserView());
 })->throws(InvalidArgumentException::class, 'Unsupported driver [unknown].');
