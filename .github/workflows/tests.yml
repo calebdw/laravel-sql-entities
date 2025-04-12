@@ -55,6 +55,9 @@ jobs:
       - name: Check PSR-4 mapping
         run: composer dump-autoload --optimize --strict-psr --no-dev
 
+      - name: Dump autoload
+        run: composer dump-autoload --optimize
+
       - name: Execute tests
         run: composer test
 
