@@ -1,11 +1,16 @@
 {
-  "name": "calebdw/sql-entities",
+  "name": "calebdw/laravel-sql-entities",
   "description": "Manage SQL entities in Laravel with ease.",
   "keywords": [
     "php",
     "laravel",
     "database",
     "sql",
+    "views",
+    "materialized views",
+    "functions",
+    "triggers",
+    "procedures",
     "entities"
   ],
   "type": "library",
