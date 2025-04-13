@@ -1,6 +1,7 @@
 .phpunit.cache/
 coverage/
 vendor/
+workbench/vendor
 .phpunit.result.cache
 .pint.cache
 composer.lock
