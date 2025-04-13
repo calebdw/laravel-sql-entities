@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
@@ -25,8 +26,10 @@ class Foo extends Model
     protected $table = 'foo';
 }
 
-class FooEntity extends SqlEntity
+class FooEntity implements SqlEntity
 {
+    use DefaultSqlEntityBehaviour;
+
     public function definition(): Builder|string
     {
         return Foo::query()

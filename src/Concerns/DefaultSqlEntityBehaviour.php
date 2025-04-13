@@ -2,60 +2,59 @@
 
 declare(strict_types=1);
 
-namespace CalebDW\SqlEntities;
+namespace CalebDW\SqlEntities\Concerns;
 
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use Illuminate\Database\Connection;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
-use Stringable;
+use Override;
 
-abstract class SqlEntity implements Stringable
+/** @phpstan-require-implements SqlEntity */
+trait DefaultSqlEntityBehaviour
 {
-    /** The entity definition. */
-    abstract public function definition(): Builder|string;
+    /** The connection name. */
+    protected ?string $connection = null;
 
     /** The entity name. */
+    protected ?string $name = null;
+
+    #[Override]
     public function name(): string
     {
-        return Str::snake(class_basename($this));
+        return $this->name ?? Str::snake(class_basename($this));
     }
 
-    /** The entity connection name. */
+    #[Override]
     public function connectionName(): ?string
     {
-        return null;
+        return $this->connection;
     }
 
-    /**
-     * Hook before creating the entity.
-     *
-     * @return bool true to create the entity, false to skip.
-     */
+    #[Override]
     public function creating(Connection $connection): bool
     {
         return true;
     }
 
-    /** Hook after creating the entity. */
+    #[Override]
     public function created(Connection $connection): void
     {
+        return;
     }
 
-    /**
-     * Hook before dropping the entity.
-     *
-     * @return bool true to drop the entity, false to skip.
-     */
+    #[Override]
     public function dropping(Connection $connection): bool
     {
         return true;
     }
 
-    /** Hook after dropping the entity. */
+    #[Override]
     public function dropped(Connection $connection): void
     {
+        return;
     }
 
+    #[Override]
     public function toString(): string
     {
         $definition = $this->definition();
@@ -67,6 +66,7 @@ abstract class SqlEntity implements Stringable
         return $definition->toRawSql();
     }
 
+    #[Override]
     public function __toString(): string
     {
         return $this->toString();

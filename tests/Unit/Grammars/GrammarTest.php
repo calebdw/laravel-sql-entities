@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\View;
 use CalebDW\SqlEntities\Grammars\Grammar;
 use Illuminate\Database\Connection;
@@ -39,8 +40,10 @@ class TestGrammar extends Grammar
     }
 }
 
-class UnknownSqlEntity extends SqlEntity
+class UnknownSqlEntity implements SqlEntity
 {
+    use DefaultSqlEntityBehaviour;
+
     public function definition(): Builder|string
     {
         return '';

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\SqlEntityManager;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;

@@ -9,21 +9,13 @@ use Override;
 
 class FooConnectionUserView extends View
 {
-    #[Override]
-    public function name(): string
-    {
-        return 'user_view';
-    }
+    protected ?string $connection = 'foo';
+
+    protected ?string $name = 'user_view';
 
     #[Override]
     public function definition(): string
     {
         return 'SELECT id, name FROM users';
-    }
-
-    #[Override]
-    public function connectionName(): string
-    {
-        return 'foo';
     }
 }

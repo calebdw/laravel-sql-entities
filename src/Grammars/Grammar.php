@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities\Grammars;
 
-use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use InvalidArgumentException;

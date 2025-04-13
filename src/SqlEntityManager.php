@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
-use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Grammars\Grammar;
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;

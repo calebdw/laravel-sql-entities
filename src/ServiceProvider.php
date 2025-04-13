@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
-use CalebDW\SqlEntities\SqlEntity;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Support\Composer;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Support\DeferrableProvider;
@@ -33,7 +33,7 @@ class ServiceProvider extends IlluminateServiceProvider implements DeferrablePro
     }
 
     /** @return Collection<int, SqlEntity> */
-    private function getEntities(Application $app): Collection
+    protected function getEntities(Application $app): Collection
     {
         $composer = new Composer($app->make('files'), $app->basePath());
 

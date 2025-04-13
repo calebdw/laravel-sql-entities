@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
-abstract class View extends SqlEntity
+use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
+use CalebDW\SqlEntities\Contracts\SqlEntity;
+
+abstract class View implements SqlEntity
 {
+    use Concerns\DefaultSqlEntityBehaviour;
 }
