@@ -11,6 +11,7 @@ use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Override;
+use ReflectionClass;
 use Symfony\Component\Finder\Finder;
 
 class ServiceProvider extends IlluminateServiceProvider implements DeferrableProvider
@@ -26,7 +27,11 @@ class ServiceProvider extends IlluminateServiceProvider implements DeferrablePro
     public function register(): void
     {
         $this->app->singleton(SqlEntityManager::class, function (Application $app) {
-            return new SqlEntityManager($this->getEntities($app), $app->make('db'));
+            return (new ReflectionClass(SqlEntityManager::class))
+                ->newLazyGhost(fn ($m) => $m->__construct(
+                    $this->getEntities($app),
+                    $app->make('db'),
+                ));
         });
 
         $this->app->alias(SqlEntityManager::class, 'sql-entities');
