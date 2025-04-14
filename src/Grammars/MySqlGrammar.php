@@ -12,9 +12,13 @@ class MySqlGrammar extends Grammar
     #[Override]
     protected function compileViewCreate(View $entity): string
     {
+        $columns     = $this->compileColumnsList($entity->columns());
+        $checkOption = $this->compileCheckOption($entity->checkOption());
+
         return <<<SQL
-            CREATE VIEW {$entity->name()} AS
-            {$entity}
+            CREATE VIEW {$entity->name()}{$columns} AS
+            {$entity->toString()}
+            {$checkOption}
             SQL;
     }
 

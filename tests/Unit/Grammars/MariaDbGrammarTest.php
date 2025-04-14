@@ -10,19 +10,54 @@ beforeEach(function () {
     $connection = Mockery::mock(Connection::class);
 
     test()->grammar = new MariaDbGrammar($connection);
+    test()->entity  = new UserView();
 });
 
-it('compiles view drop', function () {
-    $sql = test()->grammar->compileCreate(new UserView());
+describe('create', function () {
+    it('compiles view create', function () {
+        $sql = test()->grammar->compileCreate(test()->entity);
 
-    expect($sql)->toBe(<<<'SQL'
-        CREATE VIEW user_view AS
-        SELECT id, name FROM users
-        SQL);
+        expect($sql)->toBe(<<<'SQL'
+            CREATE VIEW user_view AS
+            SELECT id, name FROM users
+
+            SQL);
+    });
+
+    it('compiles columns', function (array $columns, string $expected) {
+        test()->entity->columns = $columns;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<SQL
+            CREATE VIEW user_view{$expected} AS
+            SELECT id, name FROM users
+
+            SQL);
+    })->with([
+        'one column'  => [['id'], ' (id)'],
+        'two columns' => [['id', 'name'], ' (id, name)'],
+    ]);
+
+    it('compiles check option', function (string|bool $option, string $expected) {
+        test()->entity->checkOption = $option;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<SQL
+            CREATE VIEW user_view AS
+            SELECT id, name FROM users
+            {$expected}
+            SQL);
+    })->with([
+        'local'    => ['local', 'WITH LOCAL CHECK OPTION'],
+        'cascaded' => ['cascaded', 'WITH CASCADED CHECK OPTION'],
+        'true'     => [true, 'WITH CHECK OPTION'],
+    ]);
 });
 
 it('compiles view create', function () {
-    $sql = test()->grammar->compileDrop(new UserView());
+    $sql = test()->grammar->compileDrop(test()->entity);
 
     expect($sql)->toBe(<<<'SQL'
         DROP VIEW IF EXISTS user_view

@@ -10,6 +10,16 @@ use Override;
 
 class UserView extends View
 {
+    public string|true|null $checkOption = null;
+
+    public ?array $columns = null;
+
+    public bool $recursive = false;
+
+    public bool $replace = false;
+
+    public bool $temporary = false;
+
     public bool $shouldCreate = true;
 
     public bool $shouldDrop = true;

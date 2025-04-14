@@ -41,4 +41,29 @@ abstract class Grammar
     abstract protected function compileViewCreate(View $entity): string;
 
     abstract protected function compileViewDrop(View $entity): string;
+
+    /** @param list<string>|null $columns */
+    protected function compileColumnsList(?array $columns): string
+    {
+        if ($columns === null) {
+            return '';
+        }
+
+        return ' (' . implode(', ', $columns) . ')';
+    }
+
+    protected function compileCheckOption(string|true|null $option): string
+    {
+        if ($option === null) {
+            return '';
+        }
+
+        if ($option === true) {
+            return 'WITH CHECK OPTION';
+        }
+
+        $option = strtoupper($option);
+
+        return "WITH {$option} CHECK OPTION";
+    }
 }

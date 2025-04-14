@@ -9,5 +9,48 @@ use CalebDW\SqlEntities\Contracts\SqlEntity;
 
 abstract class View implements SqlEntity
 {
-    use Concerns\DefaultSqlEntityBehaviour;
+    use DefaultSqlEntityBehaviour;
+
+    /**
+     * The check option for the view.
+     *
+     * @var 'cascaded'|'local'|true|null
+     */
+    protected string|true|null $checkOption = null;
+
+    /**
+     * The explicit column list for the view.
+     *
+     * @var ?list<string>
+     */
+    protected ?array $columns = null;
+
+    /** If the view is recursive. */
+    protected bool $recursive = false;
+
+    /**
+     * The check option for the view.
+     *
+     * @return 'cascaded'|'local'|true|null
+     */
+    public function checkOption(): string|true|null
+    {
+        return $this->checkOption;
+    }
+
+    /**
+     * The explicit column list for the view.
+     *
+     * @return ?list<string>
+     */
+    public function columns(): ?array
+    {
+        return $this->columns;
+    }
+
+    /** If the view is recursive. */
+    public function isRecursive(): bool
+    {
+        return $this->recursive;
+    }
 }
