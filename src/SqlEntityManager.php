@@ -14,10 +14,14 @@ use CalebDW\SqlEntities\Grammars\SqlServerGrammar;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Illuminate\Support\ItemNotFoundException;
 use InvalidArgumentException;
 
 class SqlEntityManager
 {
+    /** @var Collection<class-string<SqlEntity>, SqlEntity> */
+    public readonly Collection $entities;
+
     /**
      * The active grammar instances.
      *
@@ -25,25 +29,28 @@ class SqlEntityManager
      */
     protected array $grammars = [];
 
+    /** @param Collection<int, SqlEntity> $entities */
     public function __construct(
-        /** @var Collection<int, SqlEntity> */
-        public readonly Collection $entities,
+        Collection $entities,
         protected DatabaseManager $db,
     ) {
+        $this->entities = $entities
+            ->keyBy(fn ($entity) => $entity::class);
     }
 
-    /** @throws InvalidArgumentException if the entity is not found. */
-    public function get(string $name, ?string $connection = null): SqlEntity
+    /**
+     * Get the entity by class.
+     *
+     * @param class-string<SqlEntity> $name
+     * @throws ItemNotFoundException
+     */
+    public function get(string $name): SqlEntity
     {
-        $entity = $this->entities->firstWhere(
-            fn (SqlEntity $e) => $e->name() === $name
-                && $e->connectionName() === $connection,
-        );
+        $entity = $this->entities->get($name);
 
-        throw_if(
-            $entity === null,
-            new InvalidArgumentException("Entity [{$name}] not found."),
-        );
+        if ($entity === null) {
+            throw new ItemNotFoundException("Entity [{$name}] not found.");
+        }
 
         return $entity;
     }
@@ -51,18 +58,15 @@ class SqlEntityManager
     /**
      * Create an entity.
      *
-     * @param class-string<SqlEntity>|string|SqlEntity $entity The entity name, class, or instance.
-     * @throws InvalidArgumentException if the entity is not found.
+     * @param class-string<SqlEntity>|SqlEntity $entity
+     * @throws ItemNotFoundException
      */
     public function create(SqlEntity|string $entity): void
     {
         if (is_string($entity)) {
-            $entity = class_exists($entity)
-                ? resolve($entity)
-                : $this->get($entity);
+            $entity = $this->get($entity);
         }
 
-        assert($entity instanceof SqlEntity);
         $connection = $this->connection($entity);
 
         if (! $entity->creating($connection)) {
@@ -78,18 +82,15 @@ class SqlEntityManager
     /**
      * Drop an entity.
      *
-     * @param class-string<SqlEntity>|string|SqlEntity $entity The entity name, class, or instance.
-     * @throws InvalidArgumentException if the entity is not found.
+     * @param class-string<SqlEntity>|SqlEntity $entity
+     * @throws ItemNotFoundException
      */
     public function drop(SqlEntity|string $entity): void
     {
         if (is_string($entity)) {
-            $entity = class_exists($entity)
-                ? resolve($entity)
-                : $this->get($entity);
+            $entity = $this->get($entity);
         }
 
-        assert($entity instanceof SqlEntity);
         $connection = $this->connection($entity);
 
         if (! $entity->dropping($connection)) {
@@ -144,9 +145,7 @@ class SqlEntityManager
             'pgsql'   => new PostgresGrammar($connection),
             'sqlite'  => new SQLiteGrammar($connection),
             'sqlsrv'  => new SqlServerGrammar($connection),
-            default   => throw new InvalidArgumentException(
-                "Unsupported driver [{$driver}].",
-            ),
+            default   => throw new InvalidArgumentException("Unsupported driver [{$driver}]."),
         };
     }
 }

@@ -226,12 +226,12 @@ use CalebDW\SqlEntities\Facades\SqlEntity;
 use CalebDW\SqlEntities\SqlEntityManager;
 use CalebDW\SqlEntities\View;
 
-// Create a single entity by name, class, or instance
-SqlEntity::create('recent_orders_view');
+// Create a single entity by class or instance
+SqlEntity::create(RecentOrdersView::class);
 resolve(SqlEntityManager::class)->create(RecentOrdersView::class);
 resolve('sql-entities')->create(new RecentOrdersView());
 
-// Similarly, you can drop a single entity using the name, class, or instance
+// Similarly, you can drop a single entity using the class or instance
 SqlEntity::drop(RecentOrdersView::class);
 
 // Create or drop all entities

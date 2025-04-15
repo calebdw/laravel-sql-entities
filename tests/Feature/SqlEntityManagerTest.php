@@ -7,6 +7,7 @@ use CalebDW\SqlEntities\SqlEntityManager;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Support\ItemNotFoundException;
 use Workbench\Database\Entities\views\FooConnectionUserView;
 use Workbench\Database\Entities\views\UserView;
 
@@ -39,21 +40,18 @@ it('loads the entities')
     ->not->toBeEmpty();
 
 describe('get', function () {
-    it('returns the entity by name', function () {
-        $entity = test()->manager->get('user_view');
+    it('returns the entity by class', function (string $class) {
+        $entity = test()->manager->get($class);
 
-        expect($entity)->toBeInstanceOf(UserView::class);
-    });
-
-    it('returns the entity by name and connection', function () {
-        $entity = test()->manager->get('user_view', 'foo');
-
-        expect($entity)->toBeInstanceOf(FooConnectionUserView::class);
-    });
+        expect($entity)->toBeInstanceOf($class);
+    })->with([
+        UserView::class,
+        FooConnectionUserView::class,
+    ]);;
 
     it('throws an exception for unknown entity', function () {
         $entity = test()->manager->get('unknown');
-    })->throws(InvalidArgumentException::class, 'Entity [unknown] not found.');
+    })->throws(ItemNotFoundException::class, 'Entity [unknown] not found.');
 });
 
 describe('create', function () {
@@ -66,7 +64,6 @@ describe('create', function () {
 
         test()->manager->create($entity);
     })->with('drivers')->with([
-        'name'   => 'user_view',
         'class'  => UserView::class,
         'entity' => new UserView(),
     ]);
@@ -93,7 +90,6 @@ describe('drop', function () {
 
         test()->manager->drop($entity);
     })->with('drivers')->with([
-        'name'   => 'user_view',
         'class'  => UserView::class,
         'entity' => new UserView(),
     ]);
