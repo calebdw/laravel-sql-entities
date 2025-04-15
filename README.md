@@ -180,6 +180,41 @@ class RecentOrdersView extends View
 }
 ```
 
+#### 📑 View
+
+The `View` class is used to create views in the database.
+In addition to the options above, you can use the following options to further customize the view:
+
+```php
+<?php
+
+class RecentOrdersView extends View
+{
+    // to create a recursive view
+    protected bool $recursive = true;
+    // adds a `WITH CHECK OPTION` clause to the view
+    protected string|true|null $checkOption = 'cascaded';
+    // can provide explicit column listing
+    protected ?array $columns = ['id', 'customer_id', 'status', 'created_at'];
+}
+```
+
+<!-- #### 💿 Materialized View -->
+<!---->
+<!-- #### 🛠 Function -->
+<!---->
+<!-- #### 📤 Procedure -->
+<!---->
+<!-- #### ⚡ Trigger -->
+<!---->
+<!-- #### 🔢 Sequence -->
+<!---->
+<!-- #### 🧳 Domain -->
+<!---->
+<!-- #### 🧬 Type -->
+<!---->
+<!-- #### 🛡 Policy -->
+
 ### 🧠 Manager
 
 The `SqlEntityManager` singleton is responsible for creating and dropping SQL entities at runtime.
