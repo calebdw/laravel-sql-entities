@@ -7,7 +7,7 @@ namespace CalebDW\SqlEntities\Grammars;
 use CalebDW\SqlEntities\View;
 use Override;
 
-class PostgresGrammar extends Grammar
+class MySqlGrammar extends Grammar
 {
     #[Override]
     protected function compileViewCreate(View $entity): string
@@ -22,7 +22,7 @@ class PostgresGrammar extends Grammar
     protected function compileViewDrop(View $entity): string
     {
         return <<<SQL
-            DROP VIEW IF EXISTS {$entity->name()} CASCADE
+            DROP VIEW IF EXISTS {$entity->name()}
             SQL;
     }
 }

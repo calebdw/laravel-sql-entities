@@ -6,8 +6,11 @@ namespace CalebDW\SqlEntities;
 
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Grammars\Grammar;
+use CalebDW\SqlEntities\Grammars\MariaDbGrammar;
+use CalebDW\SqlEntities\Grammars\MySqlGrammar;
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;
+use CalebDW\SqlEntities\Grammars\SqlServerGrammar;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
@@ -136,9 +139,12 @@ class SqlEntityManager
     protected function createGrammar(string $driver, Connection $connection): Grammar
     {
         return match ($driver) {
-            'sqlite' => new SQLiteGrammar($connection),
-            'pgsql'  => new PostgresGrammar($connection),
-            default  => throw new InvalidArgumentException(
+            'mariadb' => new MariaDbGrammar($connection),
+            'mysql'   => new MySqlGrammar($connection),
+            'pgsql'   => new PostgresGrammar($connection),
+            'sqlite'  => new SQLiteGrammar($connection),
+            'sqlsrv'  => new SqlServerGrammar($connection),
+            default   => throw new InvalidArgumentException(
                 "Unsupported driver [{$driver}].",
             ),
         };

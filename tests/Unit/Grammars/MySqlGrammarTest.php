@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use CalebDW\SqlEntities\Grammars\PostgresGrammar;
+use CalebDW\SqlEntities\Grammars\MySqlGrammar;
 use Illuminate\Database\Connection;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
     $connection = Mockery::mock(Connection::class);
 
-    test()->grammar = new PostgresGrammar($connection);
+    test()->grammar = new MySqlGrammar($connection);
 });
 
-it('compiles view create', function () {
+it('compiles view drop', function () {
     $sql = test()->grammar->compileCreate(new UserView());
 
     expect($sql)->toBe(<<<'SQL'
@@ -21,10 +21,10 @@ it('compiles view create', function () {
         SQL);
 });
 
-it('compiles view drop', function () {
+it('compiles view create', function () {
     $sql = test()->grammar->compileDrop(new UserView());
 
     expect($sql)->toBe(<<<'SQL'
-        DROP VIEW IF EXISTS user_view CASCADE
+        DROP VIEW IF EXISTS user_view
         SQL);
 });

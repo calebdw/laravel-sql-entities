@@ -6,7 +6,6 @@ use CalebDW\SqlEntities\SqlEntityManager;
 use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Events\MigrationsStarted;
-use Mockery;
 
 beforeEach(function () {
     test()->manager = Mockery::mock(SqlEntityManager::class);

@@ -10,6 +10,14 @@ use Illuminate\Database\DatabaseManager;
 use Workbench\Database\Entities\views\FooConnectionUserView;
 use Workbench\Database\Entities\views\UserView;
 
+dataset('drivers', [
+    'mariadb' => 'mariadb',
+    'mysql'   => 'mysql',
+    'pgsql'   => 'pgsql',
+    'sqlite'  => 'sqlite',
+    'sqlsrv'  => 'sqlsrv',
+]);
+
 beforeEach(function () {
     test()->connection = test()->mock(Connection::class);
 
@@ -49,15 +57,15 @@ describe('get', function () {
 });
 
 describe('create', function () {
-    it('creates an entity', function (string|SqlEntity $entity) {
+    it('creates an entity', function (string $driver, string|SqlEntity $entity) {
         test()->connection
-            ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+            ->shouldReceive('getDriverName')->once()->andReturn($driver)
             ->shouldReceive('statement')
             ->once()
             ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
 
         test()->manager->create($entity);
-    })->with([
+    })->with('drivers')->with([
         'name'   => 'user_view',
         'class'  => UserView::class,
         'entity' => new UserView(),
@@ -76,15 +84,15 @@ describe('create', function () {
 });
 
 describe('drop', function () {
-    it('drops an entity', function (string|SqlEntity $entity) {
+    it('drops an entity', function (string $driver, string|SqlEntity $entity) {
         test()->connection
-            ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
+            ->shouldReceive('getDriverName')->once()->andReturn($driver)
             ->shouldReceive('statement')
             ->once()
             ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
 
         test()->manager->drop($entity);
-    })->with([
+    })->with('drivers')->with([
         'name'   => 'user_view',
         'class'  => UserView::class,
         'entity' => new UserView(),
