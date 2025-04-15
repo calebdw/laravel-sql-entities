@@ -20,6 +20,13 @@ interface SqlEntity extends Stringable
     public function connectionName(): ?string;
 
     /**
+     * Any dependencies that need to be handled before this entity.
+     *
+     * @return array<int, class-string<self>>
+     */
+    public function dependencies(): array;
+
+    /**
      * Hook before creating the entity.
      *
      * @return bool true to create the entity, false to skip.

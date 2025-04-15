@@ -180,6 +180,29 @@ class RecentOrdersView extends View
 }
 ```
 
+#### ⚙️ Handling Dependencies
+
+Entities may depend on one another (e.g., a view that selects from another view).
+To support this, each entity can declare its dependencies using the `dependencies()` method:
+
+```php
+<?php
+
+class RecentHighValueOrdersView extends View
+{
+    #[Override]
+    public function dependencies(): array
+    {
+        return [
+            HighValueOrdersView::class,
+        ];
+    }
+}
+```
+
+The manager will ensure that dependencies are created in the correct order, using a topological sort behind the scenes.
+In the example above, `HighValueOrdersView` will be created before `RecentHighValueOrdersView` automatically.
+
 #### 📑 View
 
 The `View` class is used to create views in the database.

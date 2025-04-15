@@ -18,6 +18,13 @@ trait DefaultSqlEntityBehaviour
     /** The entity name. */
     protected ?string $name = null;
 
+    /**
+     * Any dependencies that need to be handled before this entity.
+     *
+     * @var array<int, class-string<SqlEntity>>
+     */
+    protected array $dependencies = [];
+
     #[Override]
     public function name(): string
     {
@@ -31,6 +38,12 @@ trait DefaultSqlEntityBehaviour
     }
 
     #[Override]
+    public function dependencies(): array
+    {
+        return $this->dependencies;
+    }
+
+    #[Override]
     public function creating(Connection $connection): bool
     {
         return true;
@@ -39,7 +52,6 @@ trait DefaultSqlEntityBehaviour
     #[Override]
     public function created(Connection $connection): void
     {
-        return;
     }
 
     #[Override]
@@ -51,7 +63,6 @@ trait DefaultSqlEntityBehaviour
     #[Override]
     public function dropped(Connection $connection): void
     {
-        return;
     }
 
     #[Override]

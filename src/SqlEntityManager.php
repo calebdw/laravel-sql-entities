@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
+use CalebDW\SqlEntities\Concerns\SortsTopologically;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Grammars\Grammar;
 use CalebDW\SqlEntities\Grammars\MariaDbGrammar;
@@ -19,8 +20,10 @@ use InvalidArgumentException;
 
 class SqlEntityManager
 {
+    use SortsTopologically;
+
     /** @var Collection<class-string<SqlEntity>, SqlEntity> */
-    public readonly Collection $entities;
+    public Collection $entities;
 
     /**
      * The active grammar instances.
@@ -34,8 +37,15 @@ class SqlEntityManager
         Collection $entities,
         protected DatabaseManager $db,
     ) {
-        $this->entities = $entities
-            ->keyBy(fn ($entity) => $entity::class);
+        $this->entities = $entities->keyBy(fn ($e) => $e::class);
+
+        $sorted = $this->sortTopologically(
+            $this->entities,
+            fn ($e) => collect($e->dependencies())->map($this->get(...)),
+            fn ($e) => $e::class,
+        );
+
+        $this->entities = collect($sorted)->keyBy(fn ($e) => $e::class);
     }
 
     /**
@@ -118,6 +128,7 @@ class SqlEntityManager
     public function dropAll(?string $type = null, ?string $connection = null): void
     {
         $this->entities
+            ->reverse()
             ->when($connection, fn ($c) => $c->filter(
                 fn ($e) => $e->connectionName() === $connection,
             ))
