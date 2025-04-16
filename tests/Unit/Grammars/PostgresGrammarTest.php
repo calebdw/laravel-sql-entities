@@ -29,7 +29,7 @@ describe('create', function () {
 
         $sql = test()->grammar->compileCreate(test()->entity);
 
-        expect($sql)->toBe(<<<SQL
+        expect($sql)->toBe(<<<'SQL'
             CREATE RECURSIVE VIEW user_view AS
             SELECT id, name FROM users
 
@@ -47,7 +47,7 @@ describe('create', function () {
 
             SQL);
     })->with([
-        'one column' => [['id'], ' (id)'],
+        'one column'  => [['id'], ' (id)'],
         'two columns' => [['id', 'name'], ' (id, name)'],
     ]);
 

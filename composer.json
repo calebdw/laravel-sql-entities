@@ -71,6 +71,7 @@
       "pest --coverage"
     ],
     "test": [
+      "@test:lint",
       "@test:static",
       "@test:coverage"
     ],

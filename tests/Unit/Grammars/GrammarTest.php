@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
-use CalebDW\SqlEntities\View;
 use CalebDW\SqlEntities\Grammars\Grammar;
+use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 
