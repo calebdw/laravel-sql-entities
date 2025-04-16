@@ -44,6 +44,13 @@ class SqlEntityManager
      */
     protected array $grammars = [];
 
+    /**
+     * The states of the entities.
+     *
+     * @var array<class-string<SqlEntity>, 'created'|'dropped'>
+     */
+    protected array $states = [];
+
     /** @param Collection<array-key, SqlEntity> $entities */
     public function __construct(
         Collection $entities,
@@ -89,16 +96,25 @@ class SqlEntityManager
             $entity = $this->get($entity);
         }
 
+        if (($this->states[$entity::class] ?? null) === 'created') {
+            return;
+        }
+
         $connection = $this->connection($entity->connectionName());
 
         if (! $entity->creating($connection)) {
             return;
         }
 
+        foreach ($entity->dependencies() as $dependency) {
+            $this->create($dependency);
+        }
+
         $grammar = $this->grammar($connection);
 
         $connection->statement($grammar->compileCreate($entity));
         $entity->created($connection);
+        $this->states[$entity::class] = 'created';
     }
 
     /**
@@ -113,6 +129,10 @@ class SqlEntityManager
             $entity = $this->get($entity);
         }
 
+        if (($this->states[$entity::class] ?? null) === 'dropped') {
+            return;
+        }
+
         $connection = $this->connection($entity->connectionName());
 
         if (! $entity->dropping($connection)) {
@@ -123,6 +143,7 @@ class SqlEntityManager
 
         $connection->statement($grammar->compileDrop($entity));
         $entity->dropped($connection);
+        $this->states[$entity::class] = 'dropped';
     }
 
     /**
@@ -199,6 +220,14 @@ class SqlEntityManager
                 ? $connection->transaction($execute)
                 : $execute();
         }
+    }
+
+    /** Flush the entity manager instance. */
+    public function flush(): void
+    {
+        $this->connections = [];
+        $this->grammars    = [];
+        $this->states      = [];
     }
 
     /**

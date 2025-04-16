@@ -16,7 +16,7 @@ class SqlServerGrammar extends Grammar
         $columns     = $this->compileColumnsList($entity->columns());
 
         return <<<SQL
-            CREATE VIEW {$entity->name()}{$columns} AS
+            CREATE OR ALTER VIEW {$entity->name()}{$columns} AS
             {$entity->toString()}
             {$checkOption}
             SQL;

@@ -16,7 +16,7 @@ class MySqlGrammar extends Grammar
         $checkOption = $this->compileCheckOption($entity->checkOption());
 
         return <<<SQL
-            CREATE VIEW {$entity->name()}{$columns} AS
+            CREATE OR REPLACE VIEW {$entity->name()}{$columns} AS
             {$entity->toString()}
             {$checkOption}
             SQL;

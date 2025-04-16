@@ -10,6 +10,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Grammar;
 use Illuminate\Support\ItemNotFoundException;
 use Workbench\Database\Entities\views\FooConnectionUserView;
+use Workbench\Database\Entities\views\NewUserView;
 use Workbench\Database\Entities\views\UserView;
 
 dataset('drivers', [
@@ -21,11 +22,11 @@ dataset('drivers', [
 ]);
 
 dataset('typesAndConnections', [
-    'default args'         => ['types' => null, 'connections' => null, 'times' => 2],
+    'default args'         => ['types' => null, 'connections' => null, 'times' => 3],
     'single specific type' => ['types' => UserView::class, 'connections' => null, 'times' => 1],
-    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 1],
-    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 2],
-    'single abstract type' => ['types' => View::class, 'connections' => null, 'times' => 2],
+    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 2],
+    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 3],
+    'single abstract type' => ['types' => View::class, 'connections' => null, 'times' => 3],
     'multiple types'       => ['types' => [UserView::class, FooConnectionUserView::class], 'connections' => null, 'times' => 2],
 ]);
 
@@ -86,6 +87,27 @@ describe('create', function () {
         $entity->shouldCreate = false;
         test()->manager->create($entity);
     });
+
+    it('skips already created entities', function () {
+        test()->connection
+            ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+            ->shouldReceive('statement')
+            ->once()
+            ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
+
+        test()->manager->create(UserView::class);
+        test()->manager->create(UserView::class);
+    });
+
+    it('creates an entity\'s dependencies', function () {
+        test()->connection
+            ->shouldReceive('getDriverName')->times(2)->andReturn('sqlite')
+            ->shouldReceive('statement')
+            ->times(2)
+            ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
+
+        test()->manager->create(NewUserView::class);
+    });
 });
 
 describe('drop', function () {
@@ -111,6 +133,17 @@ describe('drop', function () {
 
         $entity->shouldDrop = false;
         test()->manager->drop($entity);
+    });
+
+    it('skips already dropped entities', function () {
+        test()->connection
+            ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+            ->shouldReceive('statement')
+            ->once()
+            ->withArgs(fn ($sql) => str_contains($sql, 'DROP'));
+
+        test()->manager->drop(UserView::class);
+        test()->manager->drop(UserView::class);
     });
 });
 
@@ -187,3 +220,15 @@ it('throws exception for unsupported driver', function () {
 
     test()->manager->create(new UserView());
 })->throws(InvalidArgumentException::class, 'Unsupported driver [unknown].');
+
+it('flushes the instance', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->times(2)->andReturn('sqlite')
+        ->shouldReceive('statement')
+        ->times(2)
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
+
+    test()->manager->create(UserView::class);
+    test()->manager->flush();
+    test()->manager->create(UserView::class);
+});

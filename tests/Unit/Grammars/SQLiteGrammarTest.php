@@ -18,7 +18,7 @@ describe('create', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
-            CREATE VIEW user_view AS
+            CREATE VIEW IF NOT EXISTS user_view AS
             SELECT id, name FROM users
             SQL);
     });
@@ -29,7 +29,7 @@ describe('create', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<SQL
-            CREATE VIEW user_view{$expected} AS
+            CREATE VIEW IF NOT EXISTS user_view{$expected} AS
             SELECT id, name FROM users
             SQL);
     })->with([

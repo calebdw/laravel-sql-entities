@@ -15,7 +15,7 @@ class SQLiteGrammar extends Grammar
         $columns = $this->compileColumnsList($entity->columns());
 
         return <<<SQL
-            CREATE VIEW {$entity->name()}{$columns} AS
+            CREATE VIEW IF NOT EXISTS {$entity->name()}{$columns} AS
             {$entity->toString()}
             SQL;
     }

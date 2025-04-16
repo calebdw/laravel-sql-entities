@@ -17,7 +17,7 @@ class PostgresGrammar extends Grammar
         $recursive   = $entity->isRecursive() ? ' RECURSIVE' : '';
 
         return <<<SQL
-            CREATE{$recursive} VIEW {$entity->name()}{$columns} AS
+            CREATE OR REPLACE{$recursive} VIEW {$entity->name()}{$columns} AS
             {$entity->toString()}
             {$checkOption}
             SQL;

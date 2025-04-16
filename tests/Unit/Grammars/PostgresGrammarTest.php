@@ -18,7 +18,7 @@ describe('create', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
-            CREATE VIEW user_view AS
+            CREATE OR REPLACE VIEW user_view AS
             SELECT id, name FROM users
 
             SQL);
@@ -30,7 +30,7 @@ describe('create', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
-            CREATE RECURSIVE VIEW user_view AS
+            CREATE OR REPLACE RECURSIVE VIEW user_view AS
             SELECT id, name FROM users
 
             SQL);
@@ -42,7 +42,7 @@ describe('create', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<SQL
-            CREATE VIEW user_view{$expected} AS
+            CREATE OR REPLACE VIEW user_view{$expected} AS
             SELECT id, name FROM users
 
             SQL);
@@ -57,7 +57,7 @@ describe('create', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<SQL
-            CREATE VIEW user_view AS
+            CREATE OR REPLACE VIEW user_view AS
             SELECT id, name FROM users
             {$expected}
             SQL);
