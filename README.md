@@ -342,6 +342,9 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
+The listener will also create all entities if there's no pending migrations,
+ensuring any new entities are created automatically.
+
 ## 🤝 Contributing
 
 Thank you for considering contributing! You can read the contribution guide [here](CONTRIBUTING.md).

@@ -6,6 +6,7 @@ use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
 use CalebDW\SqlEntities\SqlEntityManager;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Events\MigrationsStarted;
+use Illuminate\Database\Events\NoPendingMigrations;
 
 beforeEach(function () {
     test()->manager  = Mockery::mock(SqlEntityManager::class);
@@ -60,6 +61,24 @@ describe('ended', function () {
 
         test()->listener->handleEnded(
             new MigrationsEnded(method: 'up'),
+        );
+    });
+});
+
+describe('no pending', function () {
+    it('does nothing if the method is not "up"', function () {
+        test()->manager->shouldNotReceive('createAll');
+        test()->listener->handleNoPending(
+            new NoPendingMigrations(method: 'down'),
+        );
+    });
+    it('creates all entities', function () {
+        test()->manager
+            ->shouldReceive('createAll')
+            ->once();
+
+        test()->listener->handleNoPending(
+            new NoPendingMigrations(method: 'up'),
         );
     });
 });
