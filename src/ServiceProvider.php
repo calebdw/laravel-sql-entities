@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
+use CalebDW\SqlEntities\Console\Commands\CreateCommand;
+use CalebDW\SqlEntities\Console\Commands\DropCommand;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Support\Composer;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Override;
 use ReflectionClass;
 use Symfony\Component\Finder\Finder;
 
-class ServiceProvider extends IlluminateServiceProvider implements DeferrableProvider
+class ServiceProvider extends IlluminateServiceProvider
 {
-    /** @return list<string> */
-    #[Override]
-    public function provides(): array
-    {
-        return [SqlEntityManager::class, 'sql-entities']; // @codeCoverageIgnore
-    }
-
     #[Override]
     public function register(): void
     {
@@ -35,6 +29,16 @@ class ServiceProvider extends IlluminateServiceProvider implements DeferrablePro
         });
 
         $this->app->alias(SqlEntityManager::class, 'sql-entities');
+    }
+
+    public function boot(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CreateCommand::class,
+                DropCommand::class,
+            ]);
+        }
     }
 
     /** @return Collection<int, SqlEntity> */

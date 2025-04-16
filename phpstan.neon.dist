@@ -4,5 +4,5 @@ parameters:
   level: 8
   paths:
     - src
-    - workbench/app
-    - workbench/database
+    # - workbench/app
+    # - workbench/database

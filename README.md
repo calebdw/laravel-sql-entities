@@ -303,6 +303,24 @@ SqlEntity::withoutEntities(
 
 After the callback, all affected entities are automatically recreated in dependency order.
 
+### 💻 Console Commands
+
+The package provides console commands to create and drop your SQL entities.
+
+```bash
+php artisan sql-entities:create [entities] [--connection=CONNECTION ...]
+
+# Create all entities
+php artisan sql-entities:create
+# Create a specific entity
+php artisan sql-entities:create 'Database\Entities\Views\RecentOrdersView'
+# Create all entities on a specific connection
+php artisan sql-entities:create -c reporting
+
+# Similarly, drop all entities
+php artisan sql-entities:drop
+```
+
 ### 🚀 Automatic syncing when migrating (Optional)
 
 You may want to automatically drop all SQL entities before migrating, and then

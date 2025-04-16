@@ -1,4 +1,4 @@
 ---
+laravel: ./workbench
 providers:
   - CalebDW\SqlEntities\ServiceProvider
-laravel: ./workbench
