@@ -188,20 +188,18 @@ To support this, each entity can declare its dependencies using the `dependencie
 ```php
 <?php
 
-class RecentHighValueOrdersView extends View
+class RecentOrdersView extends View
 {
     #[Override]
     public function dependencies(): array
     {
-        return [
-            HighValueOrdersView::class,
-        ];
+        return [OrdersView::class];
     }
 }
 ```
 
 The manager will ensure that dependencies are created in the correct order, using a topological sort behind the scenes.
-In the example above, `HighValueOrdersView` will be created before `RecentHighValueOrdersView` automatically.
+In the example above, `OrdersView` will be created before `RecentOrdersView` automatically.
 
 #### 📑 View
 
