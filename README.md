@@ -262,9 +262,48 @@ SqlEntity::createAll();
 SqlEntity::dropAll();
 
 // You can also filter by type or connection
-SqlEntity::createAll(type: View::class, connection: 'reporting');
-SqlEntity::dropAll(type: View::class, connection: 'reporting');
+SqlEntity::createAll(types: View::class, connections: 'reporting');
+SqlEntity::dropAll(types: View::class, connections: 'reporting');
 ```
+
+#### ♻️ `withoutEntities()`
+
+Sometimes you need to run a block of logic (like renaming a table column) *without certain SQL entities present*.
+The `withoutEntities()` method temporarily drops the selected entities, executes your callback, and then recreates them afterward.
+
+If the database connection supports **schema transactions**, the entire operation is wrapped in one.
+
+```php
+<?php
+use CalebDW\SqlEntities\Facades\SqlEntity;
+use Illuminate\Database\Connection;
+
+SqlEntity::withoutEntities(function (Connection $connection) {
+    $connection->getSchemaBuilder()->table('orders', function ($table) {
+        $table->renameColumn('old_customer_id', 'customer_id');
+    });
+});
+```
+
+You can also restrict the scope to certain entity types or connections:
+
+```php
+<?php
+use CalebDW\SqlEntities\Facades\SqlEntity;
+use Illuminate\Database\Connection;
+
+SqlEntity::withoutEntities(
+    callback: function (Connection $connection) {
+        $connection->getSchemaBuilder()->table('orders', function ($table) {
+            $table->renameColumn('old_customer_id', 'customer_id');
+        });
+    },
+    types: [RecentOrdersView::class, RecentHighValueOrdersView::class],
+    connections: ['reporting'],
+);
+```
+
+After the callback, all affected entities are automatically recreated in dependency order.
 
 ### 🚀 Automatic syncing when migrating (Optional)
 

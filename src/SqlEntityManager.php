@@ -12,17 +12,29 @@ use CalebDW\SqlEntities\Grammars\MySqlGrammar;
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;
 use CalebDW\SqlEntities\Grammars\SqlServerGrammar;
+use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ItemNotFoundException;
 use InvalidArgumentException;
 
+/**
+ * @phpstan-type TEntities Collection<class-string<SqlEntity>, SqlEntity>
+ */
 class SqlEntityManager
 {
     use SortsTopologically;
 
-    /** @var Collection<class-string<SqlEntity>, SqlEntity> */
+    /**
+     * The active connection instances.
+     *
+     * @var array<string, Connection>
+     */
+    protected array $connections = [];
+
+    /** @var TEntities */
     public Collection $entities;
 
     /**
@@ -32,7 +44,7 @@ class SqlEntityManager
      */
     protected array $grammars = [];
 
-    /** @param Collection<int, SqlEntity> $entities */
+    /** @param Collection<array-key, SqlEntity> $entities */
     public function __construct(
         Collection $entities,
         protected DatabaseManager $db,
@@ -51,15 +63,15 @@ class SqlEntityManager
     /**
      * Get the entity by class.
      *
-     * @param class-string<SqlEntity> $name
+     * @param class-string<SqlEntity> $class
      * @throws ItemNotFoundException
      */
-    public function get(string $name): SqlEntity
+    public function get(string $class): SqlEntity
     {
-        $entity = $this->entities->get($name);
+        $entity = $this->entities->get($class);
 
         if ($entity === null) {
-            throw new ItemNotFoundException("Entity [{$name}] not found.");
+            throw new ItemNotFoundException("Entity [{$class}] not found.");
         }
 
         return $entity;
@@ -77,7 +89,7 @@ class SqlEntityManager
             $entity = $this->get($entity);
         }
 
-        $connection = $this->connection($entity);
+        $connection = $this->connection($entity->connectionName());
 
         if (! $entity->creating($connection)) {
             return;
@@ -101,7 +113,7 @@ class SqlEntityManager
             $entity = $this->get($entity);
         }
 
-        $connection = $this->connection($entity);
+        $connection = $this->connection($entity->connectionName());
 
         if (! $entity->dropping($connection)) {
             return;
@@ -113,32 +125,129 @@ class SqlEntityManager
         $entity->dropped($connection);
     }
 
-    /** @param class-string<SqlEntity>|null $type */
-    public function createAll(?string $type = null, ?string $connection = null): void
-    {
+    /**
+     * Create all entities.
+     *
+     * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $types
+     * @param array<int, string>|string|null $connections
+     */
+    public function createAll(
+        array|string|null $types = null,
+        array|string|null $connections = null,
+    ): void {
         $this->entities
-            ->when($connection, fn ($c) => $c->filter(
-                fn ($e) => $e->connectionName() === $connection,
-            ))
-            ->when($type, fn ($c, $t) => $c->filter(fn ($e) => is_a($e, $t)))
-            ->each(fn ($e) => $this->create($e));
+            ->when($connections, $this->filterByConnections(...))
+            ->when($types, $this->filterByTypes(...))
+            ->each($this->create(...));
     }
 
-    /** @param class-string<SqlEntity>|null $type */
-    public function dropAll(?string $type = null, ?string $connection = null): void
-    {
+    /**
+     * Drop all entities.
+     *
+     * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $types
+     * @param array<int, string>|string|null $connections
+     */
+    public function dropAll(
+        array|string|null $types = null,
+        array|string|null $connections = null,
+    ): void {
         $this->entities
             ->reverse()
-            ->when($connection, fn ($c) => $c->filter(
-                fn ($e) => $e->connectionName() === $connection,
-            ))
-            ->when($type, fn ($c, $t) => $c->filter(fn ($e) => is_a($e, $t)))
-            ->each(fn ($e) => $this->drop($e));
+            ->when($connections, $this->filterByConnections(...))
+            ->when($types, $this->filterByTypes(...))
+            ->each($this->drop(...));
     }
 
-    protected function connection(SqlEntity $entity): Connection
+    /**
+     * Execute a callback (in a transaction, if supported) without the specified entities.
+     *
+     * @param Closure(Connection): mixed $callback
+     * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $types
+     * @param array<int, string>|string|null $connections
+     */
+    public function withoutEntities(
+        Closure $callback,
+        array|string|null $types = null,
+        array|string|null $connections = null,
+    ): void {
+        $defaultConnection = $this->db->getDefaultConnection();
+
+        $groups = $this->entities
+            ->when($connections, $this->filterByConnections(...))
+            ->when($types, $this->filterByTypes(...))
+            ->groupBy(fn ($e) => $e->connectionName() ?? $defaultConnection);
+
+        foreach ($groups as $connectionName => $entities) {
+            $connection = $this->connection($connectionName);
+
+            $execute = function () use ($connection, $entities, $callback) {
+                $entities
+                    ->reverse()
+                    ->each($this->drop(...));
+
+                $callback($connection);
+
+                $entities->each($this->create(...));
+            };
+
+            /** @phpstan-ignore identical.alwaysFalse (bad phpdocs) */
+            if ($connection->getSchemaGrammar() === null) {
+                $connection->useDefaultSchemaGrammar();
+            }
+
+            $connection->getSchemaGrammar()->supportsSchemaTransactions()
+                ? $connection->transaction($execute)
+                : $execute();
+        }
+    }
+
+    /**
+     * Filter entities by connection.
+     *
+     * @param TEntities $entities
+     * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity> $types
+     * @return TEntities
+     */
+    protected function filterByTypes(
+        Collection $entities,
+        array|string $types,
+    ): Collection {
+        return $entities->filter(function ($entity) use ($types) {
+            foreach (Arr::wrap($types) as $type) {
+                if (is_a($entity, $type, allow_string: false)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
+    /**
+     * Filter entities by connection.
+     *
+     * @param TEntities $entities
+     * @param array<int, string>|string $connections
+     * @return TEntities
+     */
+    protected function filterByConnections(
+        Collection $entities,
+        array|string $connections,
+    ): Collection {
+        $default = $this->db->getDefaultConnection();
+
+        return $entities->filter(function ($entity) use ($connections, $default) {
+            $name = $entity->connectionName() ?? $default;
+
+            return in_array($name, Arr::wrap($connections), strict: true);
+        });
+    }
+
+    protected function connection(?string $name): Connection
     {
-        return $this->db->connection($entity->connectionName());
+        $name ??= $this->db->getDefaultConnection();
+
+        return $this->connections[$name] ??= $this->db->connection($name);
     }
 
     protected function grammar(Connection $connection): Grammar

@@ -7,6 +7,7 @@ use CalebDW\SqlEntities\SqlEntityManager;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Grammar;
 use Illuminate\Support\ItemNotFoundException;
 use Workbench\Database\Entities\views\FooConnectionUserView;
 use Workbench\Database\Entities\views\UserView;
@@ -19,12 +20,21 @@ dataset('drivers', [
     'sqlsrv'  => 'sqlsrv',
 ]);
 
+dataset('typesAndConnections', [
+    'default args'         => ['types' => null, 'connections' => null, 'times' => 2],
+    'single specific type' => ['types' => UserView::class, 'connections' => null, 'times' => 1],
+    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 1],
+    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 2],
+    'single abstract type' => ['types' => View::class, 'connections' => null, 'times' => 2],
+    'multiple types'       => ['types' => [UserView::class, FooConnectionUserView::class], 'connections' => null, 'times' => 2],
+]);
+
 beforeEach(function () {
     test()->connection = test()->mock(Connection::class);
 
     $db = test()->mock(DatabaseManager::class)
-        ->shouldReceive('connection')
-        ->andReturn(test()->connection)
+        ->shouldReceive('getDefaultConnection')->andReturn('default')
+        ->shouldReceive('connection')->andReturn(test()->connection)
         ->getMock();
     app()->instance('db', $db);
 
@@ -35,9 +45,7 @@ afterEach(function () {
     Mockery::close();
 });
 
-it('loads the entities')
-    ->expect(test()->manager->entities)
-    ->not->toBeEmpty();
+it('loads the entities')->expect(test()->manager->entities)->not->toBeEmpty();
 
 describe('get', function () {
     it('returns the entity by class', function (string $class) {
@@ -47,7 +55,7 @@ describe('get', function () {
     })->with([
         UserView::class,
         FooConnectionUserView::class,
-    ]);;
+    ]);
 
     it('throws an exception for unknown entity', function () {
         $entity = test()->manager->get('unknown');
@@ -60,7 +68,7 @@ describe('create', function () {
             ->shouldReceive('getDriverName')->once()->andReturn($driver)
             ->shouldReceive('statement')
             ->once()
-            ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
+            ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
 
         test()->manager->create($entity);
     })->with('drivers')->with([
@@ -86,7 +94,7 @@ describe('drop', function () {
             ->shouldReceive('getDriverName')->once()->andReturn($driver)
             ->shouldReceive('statement')
             ->once()
-            ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
+            ->withArgs(fn ($sql) => str_contains($sql, 'DROP'));
 
         test()->manager->drop($entity);
     })->with('drivers')->with([
@@ -106,30 +114,76 @@ describe('drop', function () {
     });
 });
 
-it('creates entities by type and connection', function () {
+it('creates entities by type and connection', function (array|string|null $types, array|string|null $connections, int $times) {
     test()->connection
-        ->shouldReceive('getDriverName')->once()->andReturn('sqlite')
+        ->shouldReceive('getDriverName')->times($times)->andReturn('sqlite')
         ->shouldReceive('statement')
-        ->once()
-        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE VIEW'));
+        ->times($times)
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
 
-    test()->manager->createAll(View::class, 'foo');
-});
+    test()->manager->createAll($types, $connections);
+})->with('typesAndConnections');
 
-it('drops entities by type and connection', function () {
+it('drops entities by type and connection', function (array|string|null $types, array|string|null $connections, int $times) {
     test()->connection
-        ->shouldReceive('getDriverName')->once()->andReturn('pgsql')
+        ->shouldReceive('getDriverName')->times($times)->andReturn('sqlite')
         ->shouldReceive('statement')
-        ->once()
-        ->withArgs(fn ($sql) => str_contains($sql, 'DROP VIEW'));
+        ->times($times)
+        ->withArgs(fn ($sql) => str_contains($sql, 'DROP'));
 
-    test()->manager->dropAll(View::class, 'foo');
-});
+    test()->manager->dropAll($types, $connections);
+})->with('typesAndConnections');
+
+it('executes callbacks without entities', function (
+    bool $transactions,
+    bool $grammarLoaded,
+    array|string|null $types,
+    array|string|null $connections,
+    int $times,
+) {
+    $callback = fn () => null;
+
+    $grammar = test()->mock(Grammar::class)
+        ->shouldReceive('supportsSchemaTransactions')->andReturn($transactions)
+        ->getMock();
+
+    if ($grammarLoaded) {
+        test()->connection
+            ->shouldReceive('getSchemaGrammar')->andReturn($grammar);
+    } else {
+        test()->connection
+            ->shouldReceive('getSchemaGrammar')->andReturn(null, $grammar)
+            ->shouldReceive('useDefaultSchemaGrammar');
+    }
+
+    test()->connection
+        ->shouldReceive('getDriverName')->times($times * 2)->andReturn('sqlite')
+        ->shouldReceive('statement')
+        ->times($times)
+        ->withArgs(fn ($sql) => str_contains($sql, 'DROP'))
+        ->shouldReceive('statement')
+        ->times($times)
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
+
+    if ($transactions) {
+        test()->connection
+            ->shouldReceive('transaction')
+            ->andReturnUsing(fn ($callback) => $callback());
+    }
+
+    test()->manager->withoutEntities($callback, $types, $connections);
+})->with([
+    'transactions'    => true,
+    'no transactions' => false,
+])->with([
+    'grammar loaded'     => true,
+    'grammar not loaded' => false,
+])->with('typesAndConnections');
 
 it('throws exception for unsupported driver', function () {
     test()->connection
         ->shouldReceive('getDriverName')
         ->andReturn('unknown');
 
-    resolve(SqlEntityManager::class)->create(new UserView());
+    test()->manager->create(new UserView());
 })->throws(InvalidArgumentException::class, 'Unsupported driver [unknown].');
