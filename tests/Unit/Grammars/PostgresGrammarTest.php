@@ -72,6 +72,6 @@ it('compiles view drop', function () {
     $sql = test()->grammar->compileDrop(test()->entity);
 
     expect($sql)->toBe(<<<'SQL'
-        DROP VIEW IF EXISTS user_view CASCADE
+        DROP VIEW IF EXISTS user_view
         SQL);
 });
