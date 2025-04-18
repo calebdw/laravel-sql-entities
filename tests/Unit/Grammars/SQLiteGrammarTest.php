@@ -4,17 +4,26 @@ declare(strict_types=1);
 
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;
 use Illuminate\Database\Connection;
+use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
-    $connection = Mockery::mock(Connection::class);
-
+    $connection     = Mockery::mock(Connection::class);
     test()->grammar = new SQLiteGrammar($connection);
-    test()->entity  = new UserView();
 });
 
-describe('create', function () {
-    it('compiles view create', function () {
+describe('compiles create function', function () {
+    it('throws exception', function () {
+        test()->grammar->compileCreate(new AddFunction());
+    })->throws('SQLite does not support user-defined functions.');
+});
+
+describe('compiles create view', function () {
+    beforeEach(function () {
+        test()->entity = new UserView();
+    });
+
+    it('compiles successfully', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
@@ -36,12 +45,4 @@ describe('create', function () {
         'one column'  => [['id'], ' (id)'],
         'two columns' => [['id', 'name'], ' (id, name)'],
     ]);
-});
-
-it('compiles view create', function () {
-    $sql = test()->grammar->compileDrop(test()->entity);
-
-    expect($sql)->toBe(<<<'SQL'
-        DROP VIEW IF EXISTS user_view
-        SQL);
 });

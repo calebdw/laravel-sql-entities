@@ -222,8 +222,82 @@ class RecentOrdersView extends View
 
 <!-- #### 💿 Materialized View -->
 <!---->
-<!-- #### 🛠 Function -->
-<!---->
+#### 📐 Function
+
+The `Function_` class is used to create functions in the database.
+
+> [!TIP]
+> The class is named `Function_` as `function` is a reserved keyword in PHP.
+
+In addition to the options above, you can use the following options to further customize the function:
+
+```php
+<?php
+
+namespace Database\Entities\Functions;
+
+use CalebDW\SqlEntities\Function_;
+
+class Add extends Function_
+{
+    /** If the function aggregates. */
+    protected bool $aggregate = false;
+
+    protected array $arguments = [
+        'integer',
+        'integer',
+    ];
+
+    /** The language the function is written in. */
+    protected string $language = 'SQL';
+
+    protected array $characteristics = [];
+
+    /** The function return type. */
+    protected string $returns = 'integer';
+
+    #[Override]
+    public function definition(): string
+    {
+        return <<<'SQL'
+            RETURN $1 + $2;
+            SQL;
+    }
+}
+```
+
+Loadable functions are also supported:
+
+```php
+<?php
+
+namespace Database\Entities\Functions;
+
+use CalebDW\SqlEntities\Function_;
+
+class Add extends Function_
+{
+    protected array $arguments = [
+        'integer',
+        'integer',
+    ];
+
+    /** The language the function is written in. */
+    protected string $language = 'c';
+
+    protected bool $loadable = true;
+
+    /** The function return type. */
+    protected string $returns = 'integer';
+
+    #[Override]
+    public function definition(): string
+    {
+        return 'c_add';
+    }
+}
+```
+
 <!-- #### 📤 Procedure -->
 <!---->
 <!-- #### ⚡ Trigger -->

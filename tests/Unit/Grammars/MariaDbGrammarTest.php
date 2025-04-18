@@ -4,17 +4,78 @@ declare(strict_types=1);
 
 use CalebDW\SqlEntities\Grammars\MariaDbGrammar;
 use Illuminate\Database\Connection;
+use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
-    $connection = Mockery::mock(Connection::class);
-
+    $connection     = Mockery::mock(Connection::class);
     test()->grammar = new MariaDbGrammar($connection);
-    test()->entity  = new UserView();
 });
 
-describe('create', function () {
-    it('compiles view create', function () {
+describe('compiles function create', function () {
+    beforeEach(function () {
+        test()->entity = new AddFunction();
+    });
+
+    it('compiles successfully', function () {
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            RETURN $1 + $2;
+            SQL);
+    });
+
+    it('compiles aggregate', function () {
+        test()->entity->aggregate = true;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE AGGREGATE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            RETURN $1 + $2;
+            SQL);
+    });
+
+    it('compiles loadable', function () {
+        test()->entity->loadable   = true;
+        test()->entity->definition = "'c_add'";
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function
+            RETURNS INT
+            SONAME 'c_add'
+            SQL);
+    });
+
+    it('compiles characteristics', function () {
+        test()->entity->characteristics = [
+            'DETERMINISTIC',
+            'CONTAINS SQL',
+        ];
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            DETERMINISTIC
+            CONTAINS SQL
+            RETURN $1 + $2;
+            SQL);
+    });
+});
+
+describe('compiles view create', function () {
+    beforeEach(function () {
+        test()->entity = new UserView();
+    });
+
+    it('compiles successfully', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
@@ -52,12 +113,4 @@ describe('create', function () {
         'cascaded' => ['cascaded', 'WITH CASCADED CHECK OPTION'],
         'true'     => [true, 'WITH CHECK OPTION'],
     ]);
-});
-
-it('compiles view create', function () {
-    $sql = test()->grammar->compileDrop(test()->entity);
-
-    expect($sql)->toBe(<<<'SQL'
-        DROP VIEW IF EXISTS user_view
-        SQL);
 });

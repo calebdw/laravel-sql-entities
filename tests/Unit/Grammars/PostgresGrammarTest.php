@@ -4,17 +4,105 @@ declare(strict_types=1);
 
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use Illuminate\Database\Connection;
+use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
-    $connection = Mockery::mock(Connection::class);
-
+    $connection     = Mockery::mock(Connection::class);
     test()->grammar = new PostgresGrammar($connection);
-    test()->entity  = new UserView();
 });
 
-describe('create', function () {
-    it('compiles view create', function () {
+describe('compiles function create', function () {
+    beforeEach(function () {
+        test()->entity = new AddFunction();
+    });
+
+    it('compiles successfully', function () {
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            LANGUAGE SQL
+            RETURN $1 + $2;
+            SQL);
+    });
+
+    it('compiles aggregate', function () {
+        test()->entity->aggregate = true;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            LANGUAGE SQL
+            RETURN $1 + $2;
+            SQL);
+    });
+
+    it('compiles loadable', function () {
+        test()->entity->language   = 'c';
+        test()->entity->loadable   = true;
+        test()->entity->definition = "'c_add'";
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            LANGUAGE c
+            AS 'c_add'
+            SQL);
+    });
+
+    it('compiles plpgspl', function () {
+        test()->entity->language   = 'plpgsql';
+        test()->entity->definition = <<<'SQL'
+            BEGIN
+                RETURN $1 + $2;
+            END;
+            SQL;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            LANGUAGE plpgsql
+            AS $function$
+            BEGIN
+                RETURN $1 + $2;
+            END;
+            $function$
+            SQL);
+    });
+
+    it('compiles characteristics', function () {
+        test()->entity->characteristics = [
+            'DETERMINISTIC',
+            'CONTAINS SQL',
+        ];
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE FUNCTION add_function(integer, integer)
+            RETURNS INT
+            LANGUAGE SQL
+            DETERMINISTIC
+            CONTAINS SQL
+            RETURN $1 + $2;
+            SQL);
+    });
+});
+
+describe('compiles view create', function () {
+    beforeEach(function () {
+        test()->entity = new UserView();
+    });
+
+    it('compiles successfully', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
@@ -65,10 +153,11 @@ describe('create', function () {
     ]);
 });
 
-it('compiles view drop', function () {
-    $sql = test()->grammar->compileDrop(test()->entity);
+it('drops function', function () {
+    $entity = new AddFunction();
+    $sql    = test()->grammar->compileDrop($entity);
 
     expect($sql)->toBe(<<<'SQL'
-        DROP VIEW IF EXISTS user_view
+        DROP FUNCTION IF EXISTS add_function(integer, integer)
         SQL);
 });

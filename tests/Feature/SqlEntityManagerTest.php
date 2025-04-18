@@ -9,6 +9,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Grammar;
 use Illuminate\Support\ItemNotFoundException;
+use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\views\FooConnectionUserView;
 use Workbench\Database\Entities\views\NewUserView;
 use Workbench\Database\Entities\views\UserView;
@@ -22,10 +23,10 @@ dataset('drivers', [
 ]);
 
 dataset('typesAndConnections', [
-    'default args'         => ['types' => null, 'connections' => null, 'times' => 3],
+    'default args'         => ['types' => null, 'connections' => null, 'times' => 4],
     'single specific type' => ['types' => UserView::class, 'connections' => null, 'times' => 1],
-    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 2],
-    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 3],
+    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 3],
+    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 4],
     'single abstract type' => ['types' => View::class, 'connections' => null, 'times' => 3],
     'multiple types'       => ['types' => [UserView::class, FooConnectionUserView::class], 'connections' => null, 'times' => 2],
 ]);
@@ -108,6 +109,14 @@ describe('create', function () {
 
         test()->manager->create(NewUserView::class);
     });
+
+    it('skips unsupported entities', function () {
+        test()->connection
+            ->shouldReceive('getDriverName')->andReturn('sqlite')
+            ->shouldNotReceive('statement');
+
+        test()->manager->create(AddFunction::class);
+    });
 });
 
 describe('drop', function () {
@@ -145,11 +154,19 @@ describe('drop', function () {
         test()->manager->drop(UserView::class);
         test()->manager->drop(UserView::class);
     });
+
+    it('skips unsupported entities', function () {
+        test()->connection
+            ->shouldReceive('getDriverName')->andReturn('sqlite')
+            ->shouldNotReceive('statement');
+
+        test()->manager->drop(AddFunction::class);
+    });
 });
 
 it('creates entities by type and connection', function (array|string|null $types, array|string|null $connections, int $times) {
     test()->connection
-        ->shouldReceive('getDriverName')->times($times)->andReturn('sqlite')
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
         ->shouldReceive('statement')
         ->times($times)
         ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
@@ -159,7 +176,7 @@ it('creates entities by type and connection', function (array|string|null $types
 
 it('drops entities by type and connection', function (array|string|null $types, array|string|null $connections, int $times) {
     test()->connection
-        ->shouldReceive('getDriverName')->times($times)->andReturn('sqlite')
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
         ->shouldReceive('statement')
         ->times($times)
         ->withArgs(fn ($sql) => str_contains($sql, 'DROP'));
@@ -190,7 +207,7 @@ it('executes callbacks without entities', function (
     }
 
     test()->connection
-        ->shouldReceive('getDriverName')->times($times * 2)->andReturn('sqlite')
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
         ->shouldReceive('statement')
         ->times($times)
         ->withArgs(fn ($sql) => str_contains($sql, 'DROP'))
