@@ -19,12 +19,4 @@ class SQLiteGrammar extends Grammar
             {$entity->toString()}
             SQL;
     }
-
-    #[Override]
-    protected function compileViewDrop(View $entity): string
-    {
-        return <<<SQL
-            DROP VIEW IF EXISTS {$entity->name()}
-            SQL;
-    }
 }

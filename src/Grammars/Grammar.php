@@ -40,7 +40,12 @@ abstract class Grammar
 
     abstract protected function compileViewCreate(View $entity): string;
 
-    abstract protected function compileViewDrop(View $entity): string;
+    protected function compileViewDrop(View $entity): string
+    {
+        return <<<SQL
+            DROP VIEW IF EXISTS {$entity->name()}
+            SQL;
+    }
 
     /** @param list<string>|null $columns */
     protected function compileColumnsList(?array $columns): string

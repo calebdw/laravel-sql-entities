@@ -21,12 +21,4 @@ class SqlServerGrammar extends Grammar
             {$checkOption}
             SQL;
     }
-
-    #[Override]
-    protected function compileViewDrop(View $entity): string
-    {
-        return <<<SQL
-            DROP VIEW IF EXISTS {$entity->name()}
-            SQL;
-    }
 }
