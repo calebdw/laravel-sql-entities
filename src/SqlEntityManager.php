@@ -27,15 +27,15 @@ class SqlEntityManager
 {
     use SortsTopologically;
 
+    /** @var TEntities */
+    public Collection $entities;
+
     /**
      * The active connection instances.
      *
      * @var array<string, Connection>
      */
     protected array $connections = [];
-
-    /** @var TEntities */
-    public Collection $entities;
 
     /**
      * The active grammar instances.
@@ -112,6 +112,18 @@ class SqlEntityManager
 
         $grammar = $this->grammar($connection);
 
+        if (! $grammar->supportsEntity($entity)) {
+            logger()->warning(
+                sprintf(
+                    'Skipping creation of entity [%s]: not supported by %s.',
+                    $entity::class,
+                    $grammar::class,
+                ),
+            );
+
+            return;
+        }
+
         $connection->statement($grammar->compileCreate($entity));
         $entity->created($connection);
         $this->states[$entity::class] = 'created';
@@ -140,6 +152,18 @@ class SqlEntityManager
         }
 
         $grammar = $this->grammar($connection);
+
+        if (! $grammar->supportsEntity($entity)) {
+            logger()->warning(
+                sprintf(
+                    'Skipping dropping of entity [%s]: not supported by %s.',
+                    $entity::class,
+                    $grammar::class,
+                ),
+            );
+
+            return;
+        }
 
         $connection->statement($grammar->compileDrop($entity));
         $entity->dropped($connection);

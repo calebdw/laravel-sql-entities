@@ -43,6 +43,14 @@ abstract class Grammar
         return $this->clean($statement);
     }
 
+    /** Determine if the grammar supports the entity. */
+    public function supportsEntity(SqlEntity $entity): bool
+    {
+        return match (true) {
+            $entity instanceof View        => true,
+            default                        => false,
+        };
+    }
     abstract protected function compileViewCreate(View $entity): string;
 
     protected function compileViewDrop(View $entity): string
