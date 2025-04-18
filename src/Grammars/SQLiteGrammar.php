@@ -12,10 +12,10 @@ class SQLiteGrammar extends Grammar
     #[Override]
     protected function compileViewCreate(View $entity): string
     {
-        $columns = $this->compileColumnsList($entity->columns());
+        $columns = $this->compileList($entity->columns());
 
         return <<<SQL
-            CREATE VIEW IF NOT EXISTS {$entity->name()}{$columns} AS
+            CREATE VIEW IF NOT EXISTS {$entity->name()} {$columns} AS
             {$entity->toString()}
             SQL;
     }

@@ -13,11 +13,11 @@ class PostgresGrammar extends Grammar
     protected function compileViewCreate(View $entity): string
     {
         $checkOption = $this->compileCheckOption($entity->checkOption());
-        $columns     = $this->compileColumnsList($entity->columns());
+        $columns     = $this->compileList($entity->columns());
         $recursive   = $entity->isRecursive() ? ' RECURSIVE' : '';
 
         return <<<SQL
-            CREATE OR REPLACE{$recursive} VIEW {$entity->name()}{$columns} AS
+            CREATE OR REPLACE {$recursive} VIEW {$entity->name()} {$columns} AS
             {$entity->toString()}
             {$checkOption}
             SQL;

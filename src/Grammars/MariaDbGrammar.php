@@ -12,11 +12,11 @@ class MariaDbGrammar extends Grammar
     #[Override]
     protected function compileViewCreate(View $entity): string
     {
-        $columns     = $this->compileColumnsList($entity->columns());
+        $columns     = $this->compileList($entity->columns());
         $checkOption = $this->compileCheckOption($entity->checkOption());
 
         return <<<SQL
-            CREATE OR REPLACE VIEW {$entity->name()}{$columns} AS
+            CREATE OR REPLACE VIEW {$entity->name()} {$columns} AS
             {$entity->toString()}
             {$checkOption}
             SQL;

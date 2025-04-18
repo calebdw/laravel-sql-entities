@@ -7,6 +7,7 @@ namespace CalebDW\SqlEntities\Grammars;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 abstract class Grammar
@@ -18,24 +19,28 @@ abstract class Grammar
 
     public function compileCreate(SqlEntity $entity): string
     {
-        return match (true) {
+        $statement = match (true) {
             $entity instanceof View => $this->compileViewCreate($entity),
 
             default => throw new InvalidArgumentException(
                 sprintf('Unsupported entity [%s].', $entity::class),
             ),
         };
+
+        return $this->clean($statement);
     }
 
     public function compileDrop(SqlEntity $entity): string
     {
-        return match (true) {
+        $statement = match (true) {
             $entity instanceof View => $this->compileViewDrop($entity),
 
             default => throw new InvalidArgumentException(
                 sprintf('Unsupported entity [%s].', $entity::class),
             ),
         };
+
+        return $this->clean($statement);
     }
 
     abstract protected function compileViewCreate(View $entity): string;
@@ -47,14 +52,14 @@ abstract class Grammar
             SQL;
     }
 
-    /** @param list<string>|null $columns */
-    protected function compileColumnsList(?array $columns): string
+    /** @param list<string>|null $values */
+    protected function compileList(?array $values): string
     {
-        if ($columns === null) {
+        if ($values === null) {
             return '';
         }
 
-        return ' (' . implode(', ', $columns) . ')';
+        return '(' . implode(', ', $values) . ')';
     }
 
     protected function compileCheckOption(string|true|null $option): string
@@ -70,5 +75,13 @@ abstract class Grammar
         $option = strtoupper($option);
 
         return "WITH {$option} CHECK OPTION";
+    }
+
+    protected function clean(string $value): string
+    {
+        return Str::of($value)
+            ->replaceMatches('/ +/', ' ')
+            ->trim()
+            ->value();
     }
 }

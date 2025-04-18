@@ -20,7 +20,6 @@ describe('create', function () {
         expect($sql)->toBe(<<<'SQL'
             CREATE OR ALTER VIEW user_view AS
             SELECT id, name FROM users
-
             SQL);
     });
 
@@ -32,7 +31,6 @@ describe('create', function () {
         expect($sql)->toBe(<<<SQL
             CREATE OR ALTER VIEW user_view{$expected} AS
             SELECT id, name FROM users
-
             SQL);
     })->with([
         'one column'  => [['id'], ' (id)'],

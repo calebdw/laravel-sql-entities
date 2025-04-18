@@ -13,10 +13,10 @@ class SqlServerGrammar extends Grammar
     protected function compileViewCreate(View $entity): string
     {
         $checkOption = $this->compileCheckOption($entity->checkOption());
-        $columns     = $this->compileColumnsList($entity->columns());
+        $columns     = $this->compileList($entity->columns());
 
         return <<<SQL
-            CREATE OR ALTER VIEW {$entity->name()}{$columns} AS
+            CREATE OR ALTER VIEW {$entity->name()} {$columns} AS
             {$entity->toString()}
             {$checkOption}
             SQL;
