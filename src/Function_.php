@@ -35,7 +35,7 @@ abstract class Function_ implements SqlEntity
     protected array $characteristics = [];
 
     /** The function return type. */
-    protected string $returns = '';
+    protected string $returns;
 
     /** The language the function is written in. */
     public function aggregate(): bool
