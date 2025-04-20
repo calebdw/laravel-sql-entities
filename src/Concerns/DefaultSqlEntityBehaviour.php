@@ -15,8 +15,12 @@ trait DefaultSqlEntityBehaviour
     /** The connection name. */
     protected ?string $connection = null;
 
-    /** The entity name. */
-    protected ?string $name = null;
+    /**
+     * Any additional characteristics for the entity.
+     *
+     * @var list<string>
+     */
+    protected array $characteristics = [];
 
     /**
      * Any dependencies that need to be handled before this entity.
@@ -24,6 +28,9 @@ trait DefaultSqlEntityBehaviour
      * @var array<int, class-string<SqlEntity>>
      */
     protected array $dependencies = [];
+
+    /** The entity name. */
+    protected ?string $name = null;
 
     #[Override]
     public function name(): string
@@ -35,6 +42,12 @@ trait DefaultSqlEntityBehaviour
     public function connectionName(): ?string
     {
         return $this->connection;
+    }
+
+    #[Override]
+    public function characteristics(): array
+    {
+        return $this->characteristics;
     }
 
     #[Override]

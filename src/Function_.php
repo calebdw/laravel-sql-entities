@@ -27,13 +27,6 @@ abstract class Function_ implements SqlEntity
     /** If the function is loadable. */
     protected bool $loadable = false;
 
-    /**
-     * The function characteristics.
-     *
-     * @var list<string>
-     */
-    protected array $characteristics = [];
-
     /** The function return type. */
     protected string $returns;
 
@@ -51,16 +44,6 @@ abstract class Function_ implements SqlEntity
     public function arguments(): array
     {
         return $this->arguments;
-    }
-
-    /**
-     * The function characteristics.
-     *
-     * @return list<string>
-     */
-    public function characteristics(): array
-    {
-        return $this->characteristics;
     }
 
     /** The language the function is written in. */

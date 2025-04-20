@@ -48,12 +48,14 @@ class SqlServerGrammar extends Grammar
     #[Override]
     protected function compileViewCreate(View $entity): string
     {
-        $checkOption = $this->compileCheckOption($entity->checkOption());
-        $columns     = $this->compileList($entity->columns());
+        $checkOption     = $this->compileCheckOption($entity->checkOption());
+        $columns         = $this->compileList($entity->columns());
+        $characteristics = implode("\n", $entity->characteristics());
 
         return <<<SQL
-            CREATE OR ALTER VIEW {$entity->name()} {$columns} AS
-            {$entity->toString()}
+            CREATE OR ALTER VIEW {$entity->name()} {$columns}
+            {$characteristics}
+            AS {$entity->toString()}
             {$checkOption}
             SQL;
     }

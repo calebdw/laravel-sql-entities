@@ -251,8 +251,6 @@ class Add extends Function_
     /** The language the function is written in. */
     protected string $language = 'SQL';
 
-    protected array $characteristics = [];
-
     /** The function return type. */
     protected string $returns = 'integer';
 

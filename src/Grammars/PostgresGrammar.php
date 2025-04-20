@@ -71,13 +71,15 @@ class PostgresGrammar extends Grammar
     #[Override]
     protected function compileViewCreate(View $entity): string
     {
-        $checkOption = $this->compileCheckOption($entity->checkOption());
-        $columns     = $this->compileList($entity->columns());
-        $recursive   = $entity->isRecursive() ? ' RECURSIVE' : '';
+        $checkOption     = $this->compileCheckOption($entity->checkOption());
+        $columns         = $this->compileList($entity->columns());
+        $recursive       = $entity->isRecursive() ? ' RECURSIVE' : '';
+        $characteristics = implode("\n", $entity->characteristics());
 
         return <<<SQL
-            CREATE OR REPLACE {$recursive} VIEW {$entity->name()} {$columns} AS
-            {$entity->toString()}
+            CREATE OR REPLACE {$recursive} VIEW {$entity->name()} {$columns}
+            {$characteristics}
+            AS {$entity->toString()}
             {$checkOption}
             SQL;
     }

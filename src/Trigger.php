@@ -11,13 +11,6 @@ abstract class Trigger implements SqlEntity
 {
     use DefaultSqlEntityBehaviour;
 
-    /**
-     * The trigger characteristics.
-     *
-     * @var list<string>
-     */
-    protected array $characteristics = [];
-
     /** If the trigger is a constraint trigger. */
     protected bool $constraint = false;
 
@@ -33,16 +26,6 @@ abstract class Trigger implements SqlEntity
 
     /** The trigger timing. */
     protected string $timing;
-
-    /**
-     * The function characteristics.
-     *
-     * @return list<string>
-     */
-    public function characteristics(): array
-    {
-        return $this->characteristics;
-    }
 
     /** If the trigger is a constraint trigger. */
     public function constraint(): bool

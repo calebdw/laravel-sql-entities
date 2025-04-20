@@ -20,6 +20,13 @@ interface SqlEntity extends Stringable
     public function connectionName(): ?string;
 
     /**
+     * Any additional characteristics for the entity.
+     *
+     * @return list<string>
+     */
+    public function characteristics(): array;
+
+    /**
      * Any dependencies that need to be handled before this entity.
      *
      * @return array<int, class-string<self>>

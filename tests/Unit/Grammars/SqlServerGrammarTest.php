@@ -124,8 +124,8 @@ describe('compiles create view', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<'SQL'
-            CREATE OR ALTER VIEW user_view AS
-            SELECT id, name FROM users
+            CREATE OR ALTER VIEW user_view
+            AS SELECT id, name FROM users
             SQL);
     });
 
@@ -135,8 +135,8 @@ describe('compiles create view', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<SQL
-            CREATE OR ALTER VIEW user_view{$expected} AS
-            SELECT id, name FROM users
+            CREATE OR ALTER VIEW user_view{$expected}
+            AS SELECT id, name FROM users
             SQL);
     })->with([
         'one column'  => [['id'], ' (id)'],
@@ -149,8 +149,8 @@ describe('compiles create view', function () {
         $sql = test()->grammar->compileCreate(test()->entity);
 
         expect($sql)->toBe(<<<SQL
-            CREATE OR ALTER VIEW user_view AS
-            SELECT id, name FROM users
+            CREATE OR ALTER VIEW user_view
+            AS SELECT id, name FROM users
             {$expected}
             SQL);
     })->with([
