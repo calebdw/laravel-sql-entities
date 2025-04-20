@@ -6,6 +6,7 @@ namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ abstract class Grammar
     {
         $statement = match (true) {
             $entity instanceof Function_ => $this->compileFunctionCreate($entity),
+            $entity instanceof Trigger   => $this->compileTriggerCreate($entity),
             $entity instanceof View      => $this->compileViewCreate($entity),
 
             default => throw new InvalidArgumentException(
@@ -38,6 +40,7 @@ abstract class Grammar
     {
         $statement = match (true) {
             $entity instanceof Function_ => $this->compileFunctionDrop($entity),
+            $entity instanceof Trigger   => $this->compileTriggerDrop($entity),
             $entity instanceof View      => $this->compileViewDrop($entity),
 
             default => throw new InvalidArgumentException(
@@ -53,6 +56,7 @@ abstract class Grammar
     {
         return match (true) {
             $entity instanceof Function_ => true,
+            $entity instanceof Trigger   => true,
             $entity instanceof View      => true,
             default                      => false,
         };
@@ -64,6 +68,15 @@ abstract class Grammar
     {
         return <<<SQL
             DROP FUNCTION IF EXISTS {$entity->name()}
+            SQL;
+    }
+
+    abstract protected function compileTriggerCreate(Trigger $entity): string;
+
+    protected function compileTriggerDrop(Trigger $entity): string
+    {
+        return <<<SQL
+            DROP TRIGGER IF EXISTS {$entity->name()}
             SQL;
     }
 

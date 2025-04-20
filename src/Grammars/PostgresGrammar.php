@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
 
@@ -40,6 +41,30 @@ class PostgresGrammar extends Grammar
 
         return <<<SQL
             DROP FUNCTION IF EXISTS {$entity->name()}{$arguments}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileTriggerCreate(Trigger $entity): string
+    {
+        $contraint       = $entity->constraint() ? 'CONSTRAINT' : '';
+        $events          = implode(' OR ', $entity->events());
+        $characteristics = implode("\n", $entity->characteristics());
+
+        return <<<SQL
+            CREATE OR REPLACE {$contraint} TRIGGER {$entity->name()}
+            {$entity->timing()} {$events}
+            ON {$entity->table()}
+            {$characteristics}
+            {$entity->toString()}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileTriggerDrop(Trigger $entity): string
+    {
+        return <<<SQL
+            DROP TRIGGER IF EXISTS {$entity->name()} ON {$entity->table()}
             SQL;
     }
 

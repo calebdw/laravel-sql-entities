@@ -300,8 +300,41 @@ class Add extends Function_
 
 <!-- #### 📤 Procedure -->
 <!---->
-<!-- #### ⚡ Trigger -->
-<!---->
+
+#### ⚡ Trigger
+
+The `Trigger` class is used to create triggers in the database.
+In addition to the options above, you can use the following options to further customize the trigger:
+
+```php
+<?php
+
+namespace Database\Entities\Triggers;
+
+use CalebDW\SqlEntities\Trigger;
+
+class AccountAuditTrigger extends Trigger
+{
+    // if the trigger is a constraint trigger
+    // PostgreSQL only
+    protected bool $constraint = false;
+
+    protected string $timing = 'AFTER';
+
+    protected array $events = ['UPDATE'];
+
+    protected string $table = 'accounts';
+
+    #[Override]
+    public function definition(): string
+    {
+        return $this->definition ?? <<<'SQL'
+            EXECUTE FUNCTION record_account_audit();
+            SQL;
+    }
+}
+```
+
 <!-- #### 🔢 Sequence -->
 <!---->
 <!-- #### 🧳 Domain -->

@@ -6,6 +6,7 @@ namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
 use RuntimeException;
@@ -26,6 +27,20 @@ class SQLiteGrammar extends Grammar
     protected function compileFunctionCreate(Function_ $entity): string
     {
         throw new RuntimeException('SQLite does not support user-defined functions.');
+    }
+
+    #[Override]
+    protected function compileTriggerCreate(Trigger $entity): string
+    {
+        $characteristics = implode("\n", $entity->characteristics());
+
+        return <<<SQL
+            CREATE TRIGGER IF NOT EXISTS {$entity->name()}
+            {$entity->timing()} {$entity->events()[0]}
+            ON {$entity->table()}
+            {$characteristics}
+            {$entity->toString()}
+            SQL;
     }
 
     #[Override]

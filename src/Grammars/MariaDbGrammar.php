@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
 
@@ -28,6 +29,20 @@ class MariaDbGrammar extends Grammar
             RETURNS {$entity->returns()}
             {$characteristics}
             {$definition}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileTriggerCreate(Trigger $entity): string
+    {
+        $characteristics = implode("\n", $entity->characteristics());
+
+        return <<<SQL
+            CREATE OR REPLACE TRIGGER {$entity->name()}
+            {$entity->timing()} {$entity->events()[0]}
+            ON {$entity->table()} FOR EACH ROW
+            {$characteristics}
+            {$entity->toString()}
             SQL;
     }
 

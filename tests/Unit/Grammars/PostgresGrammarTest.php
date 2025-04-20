@@ -5,6 +5,7 @@ declare(strict_types=1);
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use Illuminate\Database\Connection;
 use Workbench\Database\Entities\functions\AddFunction;
+use Workbench\Database\Entities\triggers\AccountAuditTrigger;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
@@ -97,6 +98,70 @@ describe('compiles function create', function () {
     });
 });
 
+describe('compiles trigger create', function () {
+    beforeEach(function () {
+        test()->entity = new AccountAuditTrigger();
+
+        test()->entity->characteristics = [
+            'FOR EACH ROW',
+        ];
+    });
+
+    it('compiles successfully', function () {
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE TRIGGER account_audit_trigger
+            AFTER UPDATE
+            ON accounts
+            FOR EACH ROW
+            EXECUTE FUNCTION record_account_audit();
+            SQL);
+    });
+
+    it('handles multiple events', function () {
+        test()->entity->events = ['INSERT', 'UPDATE'];
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE TRIGGER account_audit_trigger
+            AFTER INSERT OR UPDATE
+            ON accounts
+            FOR EACH ROW
+            EXECUTE FUNCTION record_account_audit();
+            SQL);
+    });
+
+    it('compiles characteristics', function () {
+        test()->entity->characteristics[] = 'WHEN (NEW.id IS NOT NULL)';
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE TRIGGER account_audit_trigger
+            AFTER UPDATE
+            ON accounts
+            FOR EACH ROW
+            WHEN (NEW.id IS NOT NULL)
+            EXECUTE FUNCTION record_account_audit();
+            SQL);
+    });
+
+    it('compiles constraint', function () {
+        test()->entity->constraint = true;
+        $sql                       = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE CONSTRAINT TRIGGER account_audit_trigger
+            AFTER UPDATE
+            ON accounts
+            FOR EACH ROW
+            EXECUTE FUNCTION record_account_audit();
+            SQL);
+    });
+});
+
 describe('compiles view create', function () {
     beforeEach(function () {
         test()->entity = new UserView();
@@ -159,5 +224,14 @@ it('drops function', function () {
 
     expect($sql)->toBe(<<<'SQL'
         DROP FUNCTION IF EXISTS add_function(integer, integer)
+        SQL);
+});
+
+it('drops trigger', function () {
+    $entity = new AccountAuditTrigger();
+    $sql    = test()->grammar->compileDrop($entity);
+
+    expect($sql)->toBe(<<<'SQL'
+        DROP TRIGGER IF EXISTS account_audit_trigger ON accounts
         SQL);
 });

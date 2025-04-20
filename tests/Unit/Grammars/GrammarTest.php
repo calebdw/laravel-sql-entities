@@ -6,10 +6,12 @@ use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Function_;
 use CalebDW\SqlEntities\Grammars\Grammar;
+use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Workbench\Database\Entities\functions\AddFunction;
+use Workbench\Database\Entities\triggers\AccountAuditTrigger;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
@@ -38,6 +40,14 @@ it('compiles function drop', function () {
         SQL);
 });
 
+it('compiles trigger drop', function () {
+    $sql = test()->grammar->compileDrop(new AccountAuditTrigger());
+
+    expect($sql)->toBe(<<<'SQL'
+        DROP TRIGGER IF EXISTS account_audit_trigger
+        SQL);
+});
+
 it('compiles view drop', function () {
     $sql = test()->grammar->compileDrop(new UserView());
 
@@ -54,6 +64,11 @@ class TestGrammar extends Grammar
     }
 
     protected function compileFunctionCreate(Function_ $entity): string
+    {
+        return '';
+    }
+
+    protected function compileTriggerCreate(Trigger $entity): string
     {
         return '';
     }

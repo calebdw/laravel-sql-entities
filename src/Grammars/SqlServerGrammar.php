@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
 
@@ -26,6 +27,21 @@ class SqlServerGrammar extends Grammar
             RETURNS {$entity->returns()}
             {$characteristics}
             {$definition}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileTriggerCreate(Trigger $entity): string
+    {
+        $events          = implode(', ', $entity->events());
+        $characteristics = implode("\n", $entity->characteristics());
+
+        return <<<SQL
+            CREATE OR ALTER TRIGGER {$entity->name()}
+            ON {$entity->table()}
+            {$entity->timing()} {$events}
+            {$characteristics}
+            {$entity->toString()}
             SQL;
     }
 
