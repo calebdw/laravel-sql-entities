@@ -220,6 +220,16 @@ class RecentOrdersView extends View
 }
 ```
 
+Additionally, you can start a query against the view using the `query()` method:
+
+```php
+<?php
+
+RecentOrdersView::query()
+    ->where('created_at', '>=', now()->subDays(30))
+    ->get();
+```
+
 <!-- #### 💿 Materialized View -->
 <!---->
 #### 📐 Function

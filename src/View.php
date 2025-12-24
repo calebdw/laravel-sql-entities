@@ -6,6 +6,8 @@ namespace CalebDW\SqlEntities;
 
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
 
 abstract class View implements SqlEntity
 {
@@ -52,5 +54,13 @@ abstract class View implements SqlEntity
     public function isRecursive(): bool
     {
         return $this->recursive;
+    }
+
+    public static function query(?string $as = null): Builder
+    {
+        $instance = app(static::class);
+
+        return DB::connection($instance->connectionName())
+            ->table($instance->name(), $as);
     }
 }
