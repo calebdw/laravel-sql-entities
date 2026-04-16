@@ -13,7 +13,7 @@ return [
     | triggers, etc. stay up to date with your schema changes.
     |
     */
-    'sync' => true,
+    'sync' => false,
 
     /*
     |--------------------------------------------------------------------------

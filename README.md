@@ -77,7 +77,7 @@ The package ships with a configuration file that controls automatic syncing beha
 
 | Option | Default | Description |
 |---|---|---|
-| `sync` | `true` | Automatically sync (refresh) entities whenever migrations run. |
+| `sync` | `false` | Automatically sync (refresh) entities whenever migrations run. |
 | `drop_on_migrate` | `true` | Drop all entities before migrations start and recreate them after. When `false`, entities are only refreshed after migrations finish. |
 
 When `drop_on_migrate` is enabled, all entities are dropped before migrations begin to prevent failures caused by dependent schema changes (e.g., dropping a column that a view references). However, this means entities will be unavailable while migrations are running, which can be problematic if the application is still serving requests.
@@ -454,8 +454,13 @@ php artisan sql-entities:refresh
 
 ### 🚀 Automatic syncing when migrating
 
-By default, SQL entities are automatically synced whenever migrations run.
-This is controlled by the `sync` config option and is enabled out of the box.
+SQL entities can be automatically synced whenever migrations run.
+To enable this, set the `sync` config option to `true`:
+
+```php
+// config/sql-entities.php
+'sync' => true,
+```
 
 When `drop_on_migrate` is enabled (the default), all entities are dropped before
 migrations start and recreated after they finish. This prevents failures when
@@ -467,8 +472,6 @@ dropping and recreating if that fails (e.g., when a view's columns have changed)
 
 Entities are also refreshed when there are no pending migrations, ensuring any
 newly added or updated entities are always created.
-
-To disable automatic syncing entirely, set `sync` to `false` in the config.
 
 ## 🤝 Contributing
 

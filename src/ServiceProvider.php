@@ -50,7 +50,7 @@ class ServiceProvider extends IlluminateServiceProvider
             ]);
         }
 
-        if (config('sql-entities.sync', true)) {
+        if (config('sql-entities.sync', false)) {
             Event::subscribe(SyncSqlEntities::class);
         }
     }
