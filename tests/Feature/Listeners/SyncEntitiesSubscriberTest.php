@@ -9,8 +9,8 @@ use Illuminate\Database\Events\MigrationsStarted;
 use Illuminate\Database\Events\NoPendingMigrations;
 
 beforeEach(function () {
-    test()->manager  = Mockery::mock(SqlEntityManager::class);
-    test()->listener = new SyncSqlEntities(test()->manager);
+    test()->manager  = test()->mock(SqlEntityManager::class);
+    test()->listener = resolve(SyncSqlEntities::class);
 });
 
 afterEach(function () {
@@ -36,6 +36,15 @@ describe('started', function () {
             ->once();
 
         test()->listener->handleStarted(
+            new MigrationsStarted(method: 'up'),
+        );
+    });
+    it('does not drop when dropAllWhenMigrating is false', function () {
+        $listener = new SyncSqlEntities(test()->manager, dropOnMigrate: false);
+
+        test()->manager->shouldNotReceive('dropAll');
+
+        $listener->handleStarted(
             new MigrationsStarted(method: 'up'),
         );
     });
@@ -80,5 +89,27 @@ describe('no pending', function () {
         test()->listener->handleNoPending(
             new NoPendingMigrations(method: 'up'),
         );
+    });
+});
+
+describe('subscribe', function () {
+    it('includes MigrationsStarted when dropAllWhenMigrating is true', function () {
+        $events = test()->listener->subscribe();
+
+        expect($events)
+            ->toHaveKey(MigrationsStarted::class)
+            ->toHaveKey(MigrationsEnded::class)
+            ->toHaveKey(NoPendingMigrations::class);
+    });
+
+    it('excludes MigrationsStarted when dropAllWhenMigrating is false', function () {
+        $subscriber = new SyncSqlEntities(test()->manager, dropOnMigrate: false);
+
+        $events = $subscriber->subscribe();
+
+        expect($events)
+            ->not->toHaveKey(MigrationsStarted::class)
+            ->toHaveKey(MigrationsEnded::class)
+            ->toHaveKey(NoPendingMigrations::class);
     });
 });

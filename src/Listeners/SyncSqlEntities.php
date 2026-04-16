@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Listeners;
 
 use CalebDW\SqlEntities\SqlEntityManager;
+use Illuminate\Container\Attributes\Config;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Events\MigrationsStarted;
 use Illuminate\Database\Events\NoPendingMigrations;
@@ -13,16 +14,14 @@ class SyncSqlEntities
 {
     public function __construct(
         protected SqlEntityManager $manager,
+        #[Config('sql-entities.drop_on_migrate')]
+        protected bool $dropOnMigrate,
     ) {
     }
 
     public function handleStarted(MigrationsStarted $event): void
     {
-        if ($event->method !== 'up') {
-            return;
-        }
-
-        if ($event->options['pretend'] ?? false) {
+        if (! $this->dropOnMigrate || $event->method !== 'up' || ($event->options['pretend'] ?? false)) {
             return;
         }
 
@@ -55,10 +54,15 @@ class SyncSqlEntities
      */
     public function subscribe(): array
     {
-        return [
-            MigrationsStarted::class   => 'handleStarted',
+        $events = [
             MigrationsEnded::class     => 'handleEnded',
             NoPendingMigrations::class => 'handleNoPending',
         ];
+
+        if ($this->dropOnMigrate) {
+            $events[MigrationsStarted::class] = 'handleStarted';
+        }
+
+        return $events;
     }
 }

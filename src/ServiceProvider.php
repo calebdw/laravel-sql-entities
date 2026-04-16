@@ -8,9 +8,11 @@ use CalebDW\SqlEntities\Console\Commands\CreateCommand;
 use CalebDW\SqlEntities\Console\Commands\DropCommand;
 use CalebDW\SqlEntities\Console\Commands\RefreshCommand;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
+use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
 use CalebDW\SqlEntities\Support\Composer;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Override;
 use ReflectionClass;
@@ -21,6 +23,8 @@ class ServiceProvider extends IlluminateServiceProvider
     #[Override]
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__ . '/../config/sql-entities.php', 'sql-entities');
+
         $this->app->singleton(SqlEntityManager::class, function (Application $app) {
             return (new ReflectionClass(SqlEntityManager::class))
                 ->newLazyGhost(fn ($m) => $m->__construct(
@@ -35,11 +39,19 @@ class ServiceProvider extends IlluminateServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__ . '/../config/sql-entities.php' => $this->app->configPath('sql-entities.php'),
+            ], 'sql-entities-config');
+
             $this->commands([
                 CreateCommand::class,
                 DropCommand::class,
                 RefreshCommand::class,
             ]);
+        }
+
+        if (config('sql-entities.sync', true)) {
+            Event::subscribe(SyncSqlEntities::class);
         }
     }
 
