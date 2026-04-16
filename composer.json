@@ -77,7 +77,7 @@
       "@test:coverage"
     ],
     "lint": [
-      "@php vendor/bin/pint --ansi",
+      "@php vendor/bin/pint --ansi --parallel",
       "@php vendor/bin/phpstan analyse --verbose --ansi"
     ]
   },
