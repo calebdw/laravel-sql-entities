@@ -44,11 +44,11 @@ First pull in the package using Composer:
 composer require calebdw/laravel-sql-entities
 ```
 
-<!-- And then publish the package's configuration file: -->
-<!---->
-<!-- ```bash -->
-<!-- php artisan vendor:publish --provider="CalebDW\SqlEntities\ServiceProvider" -->
-<!-- ``` -->
+Optionally, publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=sql-entities-config
+```
 
 The package looks for SQL entities under `database/entities/` so you might need to add
 a namespace to your `composer.json` file, for example:
@@ -71,7 +71,18 @@ a namespace to your `composer.json` file, for example:
 > base path. This means it should automatically work for a modular setup where
 > the entities might be spread across multiple directories.
 
-<!-- ## Configuration -->
+## Configuration
+
+The package ships with a configuration file that controls automatic syncing behavior:
+
+| Option | Default | Description |
+|---|---|---|
+| `sync` | `true` | Automatically sync (refresh) entities whenever migrations run. |
+| `drop_on_migrate` | `true` | Drop all entities before migrations start and recreate them after. When `false`, entities are only refreshed after migrations finish. |
+
+When `drop_on_migrate` is enabled, all entities are dropped before migrations begin to prevent failures caused by dependent schema changes (e.g., dropping a column that a view references). However, this means entities will be unavailable while migrations are running, which can be problematic if the application is still serving requests.
+
+When disabled, entities are refreshed (using `CREATE OR REPLACE`) after migrations finish. If a refresh fails due to a schema change, the entity is automatically dropped and recreated. For migrations that require specific entities to be absent, you can use the [`withoutEntities()`](#%EF%B8%8F-withoutentities) method for more granular control.
 
 ## 🛠️ Usage
 
@@ -370,13 +381,15 @@ resolve('sql-entities')->create(new RecentOrdersView());
 // Similarly, you can drop a single entity using the class or instance
 SqlEntity::drop(RecentOrdersView::class);
 
-// Create or drop all entities
+// Create, drop, or refresh all entities
 SqlEntity::createAll();
 SqlEntity::dropAll();
+SqlEntity::refreshAll();
 
 // You can also filter by type or connection
 SqlEntity::createAll(types: View::class, connections: 'reporting');
 SqlEntity::dropAll(types: View::class, connections: 'reporting');
+SqlEntity::refreshAll(types: View::class, connections: 'reporting');
 ```
 
 #### ♻️ `withoutEntities()`
@@ -434,31 +447,28 @@ php artisan sql-entities:create -c reporting
 
 # Similarly, drop all entities
 php artisan sql-entities:drop
+
+# Refresh all entities (attempts CREATE OR REPLACE, falls back to drop + create)
+php artisan sql-entities:refresh
 ```
 
-### 🚀 Automatic syncing when migrating (Optional)
+### 🚀 Automatic syncing when migrating
 
-You may want to automatically drop all SQL entities before migrating, and then
-recreate them after the migrations are complete. This is helpful when the entities
-depend on schema changes. To do this, register the built-in subscriber in a service provider:
+By default, SQL entities are automatically synced whenever migrations run.
+This is controlled by the `sync` config option and is enabled out of the box.
 
-```php
-<?php
-use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\ServiceProvider;
+When `drop_on_migrate` is enabled (the default), all entities are dropped before
+migrations start and recreated after they finish. This prevents failures when
+migrations alter tables that entities depend on.
 
-class AppServiceProvider extends ServiceProvider
-{
-    public function boot(): void
-    {
-        Event::subscribe(SyncSqlEntities::class);
-    }
-}
-```
+When `drop_on_migrate` is disabled, entities are only refreshed after migrations
+finish. The refresh uses `CREATE OR REPLACE` where possible and falls back to
+dropping and recreating if that fails (e.g., when a view's columns have changed).
 
-The listener will also create all entities if there's no pending migrations,
-ensuring any new entities are created automatically.
+Entities are also refreshed when there are no pending migrations, ensuring any
+newly added or updated entities are always created.
+
+To disable automatic syncing entirely, set `sync` to `false` in the config.
 
 ## 🤝 Contributing
 
