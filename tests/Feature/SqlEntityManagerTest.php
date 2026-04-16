@@ -8,6 +8,7 @@ use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Grammar;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\ItemNotFoundException;
 use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\views\FooConnectionUserView;
@@ -173,6 +174,31 @@ it('creates entities by type and connection', function (array|string|null $types
 
     test()->manager->createAll($types, $connections);
 })->with('typesAndConnections');
+
+it('refreshes entities by type and connection', function (array|string|null $types, array|string|null $connections, int $times) {
+    test()->connection
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->times($times)
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
+
+    test()->manager->refreshAll($types, $connections);
+})->with('typesAndConnections');
+
+it('refreshes entities by dropping and recreating on query exception', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->once()
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'))
+        ->andThrow(new QueryException('pgsql', 'CREATE', [], new Exception('error')))
+        ->shouldReceive('statement')
+        ->withArgs(fn ($sql) => str_contains($sql, 'DROP'))
+        ->shouldReceive('statement')
+        ->withArgs(fn ($sql) => str_contains($sql, 'CREATE'));
+
+    test()->manager->refreshAll();
+});
 
 it('drops entities by type and connection', function (array|string|null $types, array|string|null $connections, int $times) {
     test()->connection

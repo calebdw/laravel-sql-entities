@@ -15,6 +15,7 @@ use CalebDW\SqlEntities\Grammars\SqlServerGrammar;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ItemNotFoundException;
@@ -201,6 +202,26 @@ class SqlEntityManager
             ->when($connections, $this->filterByConnections(...))
             ->when($types, $this->filterByTypes(...))
             ->each($this->drop(...));
+    }
+
+    /**
+     * Refresh all entities.
+     *
+     * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $types
+     * @param array<int, string>|string|null $connections
+     */
+    public function refreshAll(
+        array|string|null $types = null,
+        array|string|null $connections = null,
+    ): void {
+        try {
+            $this->createAll($types, $connections);
+        } catch (QueryException) {
+            // If we experience a query exception, it could be due to dropping
+            // columns from a view. In this case, we'll try to drop and recreate.
+            $this->dropAll($types, $connections);
+            $this->createAll($types, $connections);
+        }
     }
 
     /**

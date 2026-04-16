@@ -43,20 +43,20 @@ describe('started', function () {
 
 describe('ended', function () {
     it('does nothing if the method is not "up"', function () {
-        test()->manager->shouldNotReceive('createAll');
+        test()->manager->shouldNotReceive('refreshAll');
         test()->listener->handleEnded(
             new MigrationsEnded(method: 'down'),
         );
     });
     it('does nothing if the pretend option is true', function () {
-        test()->manager->shouldNotReceive('createAll');
+        test()->manager->shouldNotReceive('refreshAll');
         test()->listener->handleEnded(
             new MigrationsEnded(method: 'up', options: ['pretend' => true]),
         );
     });
-    it('creates all entities', function () {
+    it('refreshes all entities', function () {
         test()->manager
-            ->shouldReceive('createAll')
+            ->shouldReceive('refreshAll')
             ->once();
 
         test()->listener->handleEnded(
@@ -67,14 +67,14 @@ describe('ended', function () {
 
 describe('no pending', function () {
     it('does nothing if the method is not "up"', function () {
-        test()->manager->shouldNotReceive('createAll');
+        test()->manager->shouldNotReceive('refreshAll');
         test()->listener->handleNoPending(
             new NoPendingMigrations(method: 'down'),
         );
     });
-    it('creates all entities', function () {
+    it('refreshes all entities', function () {
         test()->manager
-            ->shouldReceive('createAll')
+            ->shouldReceive('refreshAll')
             ->once();
 
         test()->listener->handleNoPending(

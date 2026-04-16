@@ -6,6 +6,7 @@ namespace CalebDW\SqlEntities;
 
 use CalebDW\SqlEntities\Console\Commands\CreateCommand;
 use CalebDW\SqlEntities\Console\Commands\DropCommand;
+use CalebDW\SqlEntities\Console\Commands\RefreshCommand;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Support\Composer;
 use Illuminate\Contracts\Foundation\Application;
@@ -37,6 +38,7 @@ class ServiceProvider extends IlluminateServiceProvider
             $this->commands([
                 CreateCommand::class,
                 DropCommand::class,
+                RefreshCommand::class,
             ]);
         }
     }

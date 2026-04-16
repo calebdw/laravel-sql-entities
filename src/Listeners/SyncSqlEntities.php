@@ -31,15 +31,11 @@ class SyncSqlEntities
 
     public function handleEnded(MigrationsEnded $event): void
     {
-        if ($event->method !== 'up') {
+        if ($event->method !== 'up' || ($event->options['pretend'] ?? false)) {
             return;
         }
 
-        if ($event->options['pretend'] ?? false) {
-            return;
-        }
-
-        $this->manager->createAll();
+        $this->manager->refreshAll();
     }
 
     public function handleNoPending(NoPendingMigrations $event): void
@@ -48,9 +44,9 @@ class SyncSqlEntities
             return;
         }
 
-        // We still need to create the entities if there are no pending
-        // migrations because new entities may have been added to the code.
-        $this->manager->createAll();
+        // We still need to refresh the entities if there are no pending
+        // migrations because new entities may have been added/removed.
+        $this->manager->refreshAll();
     }
 
     /**
