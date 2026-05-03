@@ -37,15 +37,15 @@
   },
   "require": {
     "php": "^8.4",
-    "illuminate/console": "^11.0 || ^12.0",
-    "illuminate/contracts": "^11.0 || ^12.0",
-    "illuminate/database": "^11.0 || ^12.0",
-    "illuminate/support": "^11.0 || ^12.0"
+    "illuminate/console": "^11.0 || ^12.0 || ^13.0",
+    "illuminate/contracts": "^11.0 || ^12.0 || ^13.0",
+    "illuminate/database": "^11.0 || ^12.0 || ^13.0",
+    "illuminate/support": "^11.0 || ^12.0 || ^13.0"
   },
   "require-dev": {
     "calebdw/larastan": "^3.0",
     "laravel/pint": "^1.16.2",
-    "orchestra/testbench": "^9.0 || ^10.0",
+    "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
     "pestphp/pest": "^3.0 || ^4.0"
   },
   "extra": {
