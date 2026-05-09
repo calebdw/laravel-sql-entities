@@ -1,9 +1,10 @@
 <div align="center">
   <p>
-    <img src="/art/sql-entities.webp" alt="SQL Entities" width="40%">
+    <img src="/art/sql-entities.jpg" alt="SQL Entities" width="80%">
   </p>
   <p>Manage SQL entities in <a href="https://laravel.com">Laravel</a> with ease!</p>
   <p>
+    <a href="https://packagist.org/packages/calebdw/laravel-sql-entities"><img src="https://badge.laravel.cloud/badge/calebdw/laravel-sql-entities" alt="Laravel Compatibility"></a>
     <a href="https://github.com/calebdw/laravel-sql-entities/actions/workflows/tests.yml"><img src="https://github.com/calebdw/laravel-sql-entities/actions/workflows/tests.yml/badge.svg" alt="Test Results"></a>
     <a href="https://codecov.io/github/calebdw/laravel-sql-entities"><img src="https://codecov.io/github/calebdw/laravel-sql-entities/graph/badge.svg?token=RPLQKWDM5G" alt="Code Coverage"></a>
     <a href="https://github.com/calebdw/laravel-sql-entities"><img src="https://img.shields.io/github/license/calebdw/laravel-sql-entities" alt="License"></a>
