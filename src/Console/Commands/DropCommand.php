@@ -24,7 +24,6 @@ class DropCommand extends BaseCommand
         return self::SUCCESS;
     }
 
-    /** @return array<mixed> */
     #[Override]
     protected function getOptions(): array
     {

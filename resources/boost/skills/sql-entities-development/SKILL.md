@@ -349,11 +349,13 @@ php artisan sql-entities:create 'Database\Entities\Views\RecentOrdersView'
 # Create on specific connection
 php artisan sql-entities:create -c reporting
 
-# Drop all entities
+# Drop all entities (skips RequiresExplicitDrop entities)
 php artisan sql-entities:drop
+php artisan sql-entities:drop --force
 
 # Refresh all (CREATE OR REPLACE, falls back to drop + create)
 php artisan sql-entities:refresh
+php artisan sql-entities:refresh --force
 ```
 
 ## Migration Sync Configuration

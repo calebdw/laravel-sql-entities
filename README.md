@@ -664,6 +664,8 @@ php artisan sql-entities:drop --force
 
 # Refresh all entities (attempts CREATE OR REPLACE, falls back to drop + create)
 php artisan sql-entities:refresh
+# Refresh all entities including protected ones in the fallback
+php artisan sql-entities:refresh --force
 
 # Refresh materialized view data
 php artisan sql-entities:refresh-materialized-data

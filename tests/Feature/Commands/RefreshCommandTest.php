@@ -12,8 +12,18 @@ it('can refresh entities', function () {
     test()->manager
         ->shouldReceive('refreshAll')
         ->once()
-        ->with(null, null);
+        ->with(null, null, false);
 
     test()->artisan('sql-entities:refresh')
+        ->assertExitCode(0);
+});
+
+it('can force refresh entities', function () {
+    test()->manager
+        ->shouldReceive('refreshAll')
+        ->once()
+        ->with(null, null, true);
+
+    test()->artisan('sql-entities:refresh --force')
         ->assertExitCode(0);
 });

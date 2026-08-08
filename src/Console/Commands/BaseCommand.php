@@ -11,7 +11,6 @@ use Symfony\Component\Console\Input\InputOption;
 
 abstract class BaseCommand extends Command
 {
-    /** @return array<mixed> */
     #[Override]
     protected function getArguments(): array
     {
@@ -20,7 +19,6 @@ abstract class BaseCommand extends Command
         ];
     }
 
-    /** @return array<mixed> */
     #[Override]
     protected function getOptions(): array
     {
