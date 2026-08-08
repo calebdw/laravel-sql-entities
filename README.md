@@ -333,94 +333,37 @@ ActiveUsersView::query()->where('name', 'like', '%John%')->get();
 ```
 
 **Refreshing data:** Materialized views store their data on disk. To refresh the
-data (re-run the underlying query), use the `refreshMaterializedData()` method or the
-`sql-entities:refresh-materialized-data` command:
+data (re-run the underlying query), use the [`refreshMaterializedData()`](#-manager)
+method or the [`sql-entities:refresh-materialized-data`](#-console-commands) command.
+
+**Self-scheduling:** Materialized views can define their own refresh schedule
+using the `schedule()` method. Views with a schedule are automatically registered
+with Laravel's scheduler (with `withoutOverlapping()` enabled by default):
 
 ```php
-use CalebDW\SqlEntities\Facades\SqlEntity;
+use CalebDW\SqlEntities\MaterializedView;
+use CalebDW\SqlEntities\Support\Frequency;
 
-// Refresh all materialized views
-SqlEntity::refreshMaterializedData();
-
-// Refresh a specific materialized view
-SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class);
-
-// Refresh on a specific connection
-SqlEntity::refreshMaterializedData(connections: 'reporting');
-
-// Override the concurrent setting
-SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class, concurrent: true);
-SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class, concurrent: false);
+class ActiveUsersView extends MaterializedView
+{
+    public function schedule(Frequency $frequency): ?Frequency
+    {
+        return $frequency->everyFifteenMinutes();
+    }
+}
 ```
 
-```bash
-# Refresh all materialized views
-php artisan sql-entities:refresh-materialized-data
-
-# Refresh a specific materialized view
-php artisan sql-entities:refresh-materialized-data 'Database\Entities\Views\ActiveUsersView'
-
-# Refresh on a specific connection
-php artisan sql-entities:refresh-materialized-data -c reporting
-
-# Override concurrent setting (class default can be overridden)
-php artisan sql-entities:refresh-materialized-data --concurrent
-php artisan sql-entities:refresh-materialized-data --no-concurrent
-```
-
-> [!TIP]
-> Materialized views can define their own refresh schedule using the fluent
-> `schedule()` method. Views with a schedule are automatically registered with
-> Laravel's scheduler (with `withoutOverlapping()` enabled by default):
-> ```php
-> use CalebDW\SqlEntities\MaterializedView;
-> use CalebDW\SqlEntities\Support\Frequency;
->
-> class ActiveUsersView extends MaterializedView
-> {
->     public function schedule(Frequency $frequency): ?Frequency
->     {
->         return $frequency->everyFifteenMinutes();
->     }
-> }
->
-> class SalesReportView extends MaterializedView
-> {
->     public function schedule(Frequency $frequency): ?Frequency
->     {
->         return $frequency->hourly();
->     }
-> }
-> ```
-> Return `null` from `schedule()` (the default) to disable automatic scheduling.
+Return `null` from `schedule()` (the default) to disable automatic scheduling.
 
 > [!IMPORTANT]
 > `CREATE MATERIALIZED VIEW IF NOT EXISTS` is used for creation, which means
 > definition changes are not automatically applied. To update a materialized
-> view's definition, use `withoutEntities()` in a migration to drop and recreate it.
+> view's definition, use [`withoutEntities()`](#%EF%B8%8F-withoutentities) in a migration to drop and recreate it.
 
-**Drop protection:** Materialized views implement the `RequiresExplicitDrop` interface,
-which prevents them from being accidentally dropped during blanket operations.
-Entities implementing this interface are only dropped when:
-
-- **Explicitly named:** `SqlEntity::drop(MyView::class)` or `SqlEntity::dropAll(types: MaterializedView::class)`
-- **Force flag:** `SqlEntity::dropAll(force: true)` or `php artisan sql-entities:drop --force`
-- **CLI with arguments:** `php artisan sql-entities:drop 'Database\Entities\Views\MyView'`
-
-Blanket calls without types or force will skip protected entities:
-
-```php
-SqlEntity::dropAll();                    // skips RequiresExplicitDrop entities
-SqlEntity::dropAll(force: true);         // drops everything
-SqlEntity::dropAll(types: MyView::class); // drops MyView (explicitly named)
-
-SqlEntity::withoutEntities(fn () => ...);                    // skips protected entities
-SqlEntity::withoutEntities(fn () => ..., types: MyView::class); // includes MyView
-SqlEntity::withoutEntities(fn () => ..., force: true);       // includes everything
-```
-
-You can apply the `RequiresExplicitDrop` interface to any entity type that you
-want to protect from accidental drops.
+**Drop protection:** Materialized views implement the [`RequiresExplicitDrop`](#-requiresexplicitdrop)
+interface, which prevents them from being accidentally dropped during blanket
+operations like `dropAll()`. See the [`RequiresExplicitDrop`](#-requiresexplicitdrop)
+section for details.
 
 #### 📐 Function
 
@@ -601,6 +544,11 @@ SqlEntity::refreshAll();
 SqlEntity::createAll(types: View::class, connections: 'reporting');
 SqlEntity::dropAll(types: View::class, connections: 'reporting');
 SqlEntity::refreshAll(types: View::class, connections: 'reporting');
+
+// Refresh materialized view data
+SqlEntity::refreshMaterializedData();
+SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class);
+SqlEntity::refreshMaterializedData(concurrent: true);
 ```
 
 #### ♻️ `withoutEntities()`
@@ -642,13 +590,40 @@ SqlEntity::withoutEntities(
 
 After the callback, all affected entities are automatically recreated in dependency order.
 
+#### 🛡 `RequiresExplicitDrop`
+
+Most entities (views, functions, procedures, triggers) are cheap to drop and
+recreate---the operation is near-instant and the definitions live in your code.
+However, some entities are expensive to recreate. Materialized views, for
+example, store query results on disk; dropping one means the data is lost and
+must be recomputed on creation, which can take significant time for large
+datasets.
+
+The `RequiresExplicitDrop` interface marks these expensive entities so they
+aren't accidentally dropped during blanket operations. `MaterializedView`
+implements this by default. Protected entities are only dropped when explicitly
+targeted or forced:
+
+```php
+SqlEntity::dropAll();                                        // skips protected entities
+SqlEntity::dropAll(force: true);                             // drops everything
+SqlEntity::dropAll(types: MyMaterializedView::class);        // drops it (explicitly named)
+SqlEntity::drop(MyMaterializedView::class);                  // always drops (directly targeted)
+
+SqlEntity::withoutEntities(fn () => ...);                                        // skips protected
+SqlEntity::withoutEntities(fn () => ..., types: MyMaterializedView::class);      // includes it
+SqlEntity::withoutEntities(fn () => ..., force: true);                           // includes everything
+```
+
+You generally don't need to apply this interface to regular views, functions,
+procedures, or triggers. It's intended for entities where the cost of
+recreating is non-trivial.
+
 ### 💻 Console Commands
 
-The package provides console commands to create and drop your SQL entities.
+The package provides console commands to manage your SQL entities.
 
 ```bash
-php artisan sql-entities:create [entities] [--connection=CONNECTION ...]
-
 # Create all entities
 php artisan sql-entities:create
 # Create a specific entity
@@ -656,11 +631,21 @@ php artisan sql-entities:create 'Database\Entities\Views\RecentOrdersView'
 # Create all entities on a specific connection
 php artisan sql-entities:create -c reporting
 
-# Similarly, drop all entities
+# Drop all entities (skips RequiresExplicitDrop entities like materialized views)
 php artisan sql-entities:drop
+# Drop all entities including protected ones
+php artisan sql-entities:drop --force
 
 # Refresh all entities (attempts CREATE OR REPLACE, falls back to drop + create)
 php artisan sql-entities:refresh
+
+# Refresh materialized view data
+php artisan sql-entities:refresh-materialized-data
+# Refresh a specific materialized view
+php artisan sql-entities:refresh-materialized-data 'Database\Entities\Views\ActiveUsersView'
+# Override concurrent setting
+php artisan sql-entities:refresh-materialized-data --concurrent
+php artisan sql-entities:refresh-materialized-data --no-concurrent
 ```
 
 ## 🤝 Contributing
