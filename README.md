@@ -78,15 +78,39 @@ The package ships with a configuration file that controls automatic syncing beha
 
 | Option | Default | Description |
 |---|---|---|
-| `sync` | `false` | Automatically sync (refresh) entities whenever migrations run. |
+| `sync` | `true` | Automatically sync (refresh) entities whenever migrations run. |
 | `drop_on_migrate` | `false` | Drop all entities before migrations start and recreate them after. When `false` (the default), entities are only refreshed after migrations finish. |
 
-When `drop_on_migrate` is enabled, all entities are dropped before migrations begin to prevent failures caused by dependent schema changes (e.g., dropping a column that a view references). However, this means entities will be unavailable while migrations are running, which can be problematic if the application is still serving requests.
+### Syncing on Migration
+
+When `sync` is enabled (the default), SQL entities are automatically kept in
+sync whenever migrations run. This means you can simply create or update your
+entity classes and they'll be refreshed the next time you run `php artisan migrate`
+---no need to manually run `sql-entities:create` or `sql-entities:refresh`.
+
+Entities are also refreshed when there are no pending migrations, ensuring any
+newly added or updated entity definitions are always applied.
+
+### `drop_on_migrate` Behavior
+
+The `drop_on_migrate` option controls *how* entities are synced during migrations:
+
+**When disabled (the default):** Entities are refreshed after migrations finish
+using `CREATE OR REPLACE` where possible. If a refresh fails due to a schema
+change (e.g., a column was removed that a view references), the entity is
+automatically dropped and recreated. For migrations that require specific
+entities to be absent, you can use the [`withoutEntities()`](#%EF%B8%8F-withoutentities)
+method for more granular control.
+
+**When enabled:** All entities are dropped before migrations begin and recreated
+after they finish. This prevents migration failures caused by dependent schema
+changes, but means entities will be unavailable while migrations are running.
 
 > [!WARNING]
-> If you run migrations while the application is still serving traffic (e.g., zero-downtime or rolling deployments), enabling `drop_on_migrate` will cause SQL errors for any requests that depend on those entities until migrations complete and the entities are recreated.
-
-When disabled, entities are refreshed (using `CREATE OR REPLACE`) after migrations finish. If a refresh fails due to a schema change, the entity is automatically dropped and recreated. For migrations that require specific entities to be absent, you can use the [`withoutEntities()`](#%EF%B8%8F-withoutentities) method for more granular control.
+> If you run migrations while the application is still serving traffic (e.g.,
+> zero-downtime or rolling deployments), enabling `drop_on_migrate` will cause
+> SQL errors for any requests that depend on those entities until migrations
+> complete and the entities are recreated.
 
 ## 🛠️ Usage
 

@@ -362,12 +362,12 @@ In `config/sql-entities.php`:
 
 ```php
 return [
-    'sync' => false,           // auto-sync entities when migrations run
+    'sync' => true,            // auto-sync entities when migrations run
     'drop_on_migrate' => false, // drop all entities before migrations start
 ];
 ```
 
-- `sync => true`: entities are automatically refreshed after migrations.
+- `sync => true` (default): entities are automatically refreshed after migrations.
 - `drop_on_migrate => false` (default): entities are refreshed via `CREATE OR REPLACE` after migrations finish. Failures fall back to drop + create.
 - `drop_on_migrate => true`: all entities are dropped before migrations start and recreated after. Prevents dependency failures but entities are unavailable during migration.
 
