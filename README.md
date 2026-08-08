@@ -245,6 +245,45 @@ RecentOrdersView::query()
     ->get();
 ```
 
+##### Indexed Views (SQL Server)
+
+SQL Server supports [indexed views](https://learn.microsoft.com/en-us/sql/relational-databases/views/create-indexed-views),
+which store query results on disk and are automatically maintained by the engine
+(no manual refresh needed). You can create these using the existing `View` class
+with `characteristics` and a `created()` lifecycle hook:
+
+```php
+<?php
+
+namespace Database\Entities\Views;
+
+use CalebDW\SqlEntities\View;
+use Illuminate\Database\Connection;
+use Override;
+
+class ActiveUsersIndexedView extends View
+{
+    protected array $characteristics = ['WITH SCHEMABINDING'];
+
+    #[Override]
+    public function definition(): string
+    {
+        return <<<'SQL'
+            SELECT id, name, email FROM dbo.users WHERE active = 1
+            SQL;
+    }
+
+    #[Override]
+    public function created(Connection $connection): void
+    {
+        $connection->statement(<<<SQL
+            CREATE UNIQUE CLUSTERED INDEX IX_{$this->name()}
+            ON dbo.{$this->name()}(id)
+            SQL);
+    }
+}
+```
+
 #### 💿 Materialized View
 
 The `MaterializedView` class is used to create materialized views in the database.
