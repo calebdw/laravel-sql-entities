@@ -18,7 +18,8 @@ class PostgresGrammar extends Grammar
     public function supportsEntity(SqlEntity $entity): bool
     {
         return match (true) {
-            $entity instanceof MaterializedView, => true,
+            $entity instanceof MaterializedView => true,
+
             default => parent::supportsEntity($entity),
         };
     }
