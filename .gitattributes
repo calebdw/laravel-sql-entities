@@ -1,16 +1,15 @@
-* text=auto eol=lf
+* text=auto
 
-*.md  diff=markdown
+*.md diff=markdown
 *.php diff=php
 
-/.github            export-ignore
-/art                export-ignore
-/tests              export-ignore
-/workbench          export-ignore
-/.gitattributes     export-ignore
-/.gitignore         export-ignore
-/CONTRIBUTING.md    export-ignore
-/phpstan.neon.dist  export-ignore
-/phpunit.xml.dist   export-ignore
-/pint.json          export-ignore
-/testbench.yaml     export-ignore
+/.github export-ignore
+/tests export-ignore
+/workbench export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+CONTRIBUTING.md export-ignore
+pint.json export-ignore
+phpstan.neon.dist export-ignore
+phpunit.xml.dist export-ignore
+testbench.yaml export-ignore
