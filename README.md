@@ -77,7 +77,7 @@ a namespace to your `composer.json` file, for example:
 The package ships with a configuration file that controls automatic syncing behavior:
 
 | Option | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `sync` | `true` | Automatically sync (refresh) entities whenever migrations run. |
 | `drop_on_migrate` | `false` | Drop all entities before migrations start and recreate them after. When `false` (the default), entities are only refreshed after migrations finish. |
 
@@ -85,8 +85,8 @@ The package ships with a configuration file that controls automatic syncing beha
 
 When `sync` is enabled (the default), SQL entities are automatically kept in
 sync whenever migrations run. This means you can simply create or update your
-entity classes and they'll be refreshed the next time you run `php artisan migrate`
----no need to manually run `sql-entities:create` or `sql-entities:refresh`.
+entity classes and they'll be refreshed the next time you run `php artisan migrate`,
+no need to manually run `sql-entities:create` or `sql-entities:refresh`.
 
 Entities are also refreshed when there are no pending migrations, ensuring any
 newly added or updated entity definitions are always applied.
@@ -580,7 +580,8 @@ SqlEntity::refreshMaterializedData(concurrent: true);
 Sometimes you need to run a block of logic (like renaming a table column) *without certain SQL entities present*.
 The `withoutEntities()` method temporarily drops the selected entities, executes your callback, and then recreates them afterward.
 
-If the database connection supports **schema transactions**, the entire operation is wrapped in one.
+> [!TIP]
+> If the database connection supports **schema transactions**, the entire operation is wrapped in one.
 
 ```php
 <?php
@@ -617,7 +618,7 @@ After the callback, all affected entities are automatically recreated in depende
 #### 🛡 `RequiresExplicitDrop`
 
 Most entities (views, functions, procedures, triggers) are cheap to drop and
-recreate---the operation is near-instant and the definitions live in your code.
+recreate: the operation is near-instant and the definitions live in your code.
 However, some entities are expensive to recreate. Materialized views, for
 example, store query results on disk; dropping one means the data is lost and
 must be recomputed on creation, which can take significant time for large
@@ -629,14 +630,15 @@ implements this by default. Protected entities are only dropped when explicitly
 targeted or forced:
 
 ```php
-SqlEntity::dropAll();                                        // skips protected entities
-SqlEntity::dropAll(force: true);                             // drops everything
-SqlEntity::dropAll(types: MyMaterializedView::class);        // drops it (explicitly named)
-SqlEntity::drop(MyMaterializedView::class);                  // always drops (directly targeted)
+<?php
+SqlEntity::dropAll();                                 // skips protected entities
+SqlEntity::dropAll(force: true);                      // drops everything
+SqlEntity::dropAll(types: MyMaterializedView::class); // drops it (explicitly named)
+SqlEntity::drop(MyMaterializedView::class);           // always drops (directly targeted)
 
-SqlEntity::withoutEntities(fn () => ...);                                        // skips protected
-SqlEntity::withoutEntities(fn () => ..., types: MyMaterializedView::class);      // includes it
-SqlEntity::withoutEntities(fn () => ..., force: true);                           // includes everything
+SqlEntity::withoutEntities(/** ... */);                                   // skips protected
+SqlEntity::withoutEntities(/** ... */, types: MyMaterializedView::class); // includes it
+SqlEntity::withoutEntities(/** ... */, force: true);                      // includes everything
 ```
 
 You generally don't need to apply this interface to regular views, functions,
