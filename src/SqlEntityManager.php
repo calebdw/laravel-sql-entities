@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
-use CalebDW\SqlEntities\Concerns\SortsTopologically;
 use CalebDW\SqlEntities\Contracts\RequiresExplicitDrop;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Grammars\Grammar;
@@ -13,6 +12,7 @@ use CalebDW\SqlEntities\Grammars\MySqlGrammar;
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;
 use CalebDW\SqlEntities\Grammars\SqlServerGrammar;
+use CalebDW\SqlEntities\Support\TopologicalSorter;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
@@ -27,8 +27,6 @@ use InvalidArgumentException;
  */
 class SqlEntityManager
 {
-    use SortsTopologically;
-
     /** @var TEntities */
     public Collection $entities;
 
@@ -57,10 +55,11 @@ class SqlEntityManager
     public function __construct(
         Collection $entities,
         protected DatabaseManager $db,
+        protected TopologicalSorter $sorter,
     ) {
         $this->entities = $entities->keyBy(fn ($e) => $e::class);
 
-        $sorted = $this->sortTopologically(
+        $sorted = $this->sorter->sort(
             $this->entities,
             fn ($e) => collect($e->dependencies())->map($this->get(...)),
             fn ($e) => $e::class,

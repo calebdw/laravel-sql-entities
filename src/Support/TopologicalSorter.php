@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CalebDW\SqlEntities\Concerns;
+namespace CalebDW\SqlEntities\Support;
 
 use RuntimeException;
 
-trait SortsTopologically
+final class TopologicalSorter
 {
     /**
      * Sorts the given nodes topologically.
@@ -19,11 +19,8 @@ trait SortsTopologically
      * @return list<TNode> The sorted nodes.
      * @throws RuntimeException if a circular reference is detected.
      */
-    public function sortTopologically(
-        iterable $nodes,
-        callable $edges,
-        ?callable $getKey = null,
-    ): array {
+    public function sort(iterable $nodes, callable $edges, ?callable $getKey = null): array
+    {
         $sorted  = [];
         $visited = [];
         $getKey ??= fn ($node) => $node;
@@ -48,13 +45,8 @@ trait SortsTopologically
      * @param (callable(TNode): array-key) $getKey A function that returns the key of a node.
      * @throws RuntimeException if a circular reference is detected.
      */
-    protected function visit(
-        mixed $node,
-        callable $edges,
-        array &$sorted,
-        array &$visited,
-        callable $getKey,
-    ): void {
+    private function visit(mixed $node, callable $edges, array &$sorted, array &$visited, callable $getKey): void
+    {
         $key = $getKey($node);
 
         if (isset($visited[$key])) {

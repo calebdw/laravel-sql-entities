@@ -12,6 +12,7 @@ use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
 use CalebDW\SqlEntities\Support\Composer;
 use CalebDW\SqlEntities\Support\Frequency;
+use CalebDW\SqlEntities\Support\TopologicalSorter;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
@@ -33,6 +34,7 @@ class ServiceProvider extends IlluminateServiceProvider
                 ->newLazyGhost(fn ($m) => $m->__construct(
                     $this->getEntities($app),
                     $app->make('db'),
+                    $app->make(TopologicalSorter::class),
                 ));
         });
 
