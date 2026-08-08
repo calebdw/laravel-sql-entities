@@ -207,8 +207,23 @@ it('drops entities by type and connection', function (array|string|null $types, 
         ->times($times)
         ->withArgs(fn ($sql) => str_contains($sql, 'DROP'));
 
-    test()->manager->dropAll($types, $connections);
+    test()->manager->dropAll($types, $connections, force: true);
 })->with('typesAndConnections');
+
+it('skips entities that require force drop', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->withArgs(fn ($sql) => str_contains($sql, 'DROP'));
+
+    test()->manager->dropAll();
+
+    $dropped = collect(test()->manager->entities)
+        ->filter(fn ($e) => $e instanceof CalebDW\SqlEntities\Contracts\RequiresExplicitDrop)
+        ->every(fn ($e) => ($e::class) && true);
+
+    expect($dropped)->toBeTrue();
+});
 
 it('executes callbacks without entities', function (
     bool $transactions,
@@ -247,7 +262,7 @@ it('executes callbacks without entities', function (
             ->andReturnUsing(fn ($callback) => $callback());
     }
 
-    test()->manager->withoutEntities($callback, $types, $connections);
+    test()->manager->withoutEntities($callback, $types, $connections, force: true);
 })->with([
     'transactions'    => true,
     'no transactions' => false,

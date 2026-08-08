@@ -18,8 +18,8 @@ class SQLiteGrammar extends Grammar
     public function supportsEntity(SqlEntity $entity): bool
     {
         return match (true) {
-            $entity instanceof Function_  => false,
-            $entity instanceof Procedure  => false,
+            $entity instanceof Function_,
+            $entity instanceof Procedure => false,
 
             default => parent::supportsEntity($entity),
         };

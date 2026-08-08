@@ -12,8 +12,18 @@ it('can drop entities', function () {
     test()->manager
         ->shouldReceive('dropAll')
         ->once()
-        ->with(null, null);
+        ->with(null, null, false);
 
     test()->artisan('sql-entities:drop')
+        ->assertExitCode(0);
+});
+
+it('can force drop entities', function () {
+    test()->manager
+        ->shouldReceive('dropAll')
+        ->once()
+        ->with(null, null, true);
+
+    test()->artisan('sql-entities:drop --force')
         ->assertExitCode(0);
 });

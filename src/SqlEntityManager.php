@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities;
 
 use CalebDW\SqlEntities\Concerns\SortsTopologically;
+use CalebDW\SqlEntities\Contracts\RequiresExplicitDrop;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Grammars\Grammar;
 use CalebDW\SqlEntities\Grammars\MariaDbGrammar;
@@ -192,15 +193,20 @@ class SqlEntityManager
      *
      * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $types
      * @param array<int, string>|string|null $connections
+     * @param bool $force Force drop entities that implement RequiresExplicitDrop.
      */
     public function dropAll(
         array|string|null $types = null,
         array|string|null $connections = null,
+        bool $force = false,
     ): void {
         $this->entities
             ->reverse()
             ->when($connections, $this->filterByConnections(...))
             ->when($types, $this->filterByTypes(...))
+            ->when(! $force && $types === null, fn ($entities) => $entities->reject(
+                fn ($entity) => $entity instanceof RequiresExplicitDrop,
+            ))
             ->each($this->drop(...));
     }
 
@@ -209,17 +215,19 @@ class SqlEntityManager
      *
      * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $types
      * @param array<int, string>|string|null $connections
+     * @param bool $force Force drop entities that implement RequiresExplicitDrop.
      */
     public function refreshAll(
         array|string|null $types = null,
         array|string|null $connections = null,
+        bool $force = false,
     ): void {
         try {
             $this->createAll($types, $connections);
         } catch (QueryException) {
             // If we experience a query exception, it could be due to dropping
             // columns from a view. In this case, we'll try to drop and recreate.
-            $this->dropAll($types, $connections);
+            $this->dropAll($types, $connections, $force);
             $this->createAll($types, $connections);
         }
     }
@@ -263,12 +271,16 @@ class SqlEntityManager
         Closure $callback,
         array|string|null $types = null,
         array|string|null $connections = null,
+        bool $force = false,
     ): void {
         $defaultConnection = $this->db->getDefaultConnection();
 
         $groups = $this->entities
             ->when($connections, $this->filterByConnections(...))
             ->when($types, $this->filterByTypes(...))
+            ->when(! $force && $types === null, fn ($entities) => $entities->reject(
+                fn ($entity) => $entity instanceof RequiresExplicitDrop,
+            ))
             ->groupBy(fn ($e) => $e->connectionName() ?? $defaultConnection);
 
         foreach ($groups as $connectionName => $entities) {

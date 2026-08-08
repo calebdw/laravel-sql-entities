@@ -360,6 +360,29 @@ php artisan sql-entities:refresh-materialized-data --no-concurrent
 > definition changes are not automatically applied. To update a materialized
 > view's definition, use `withoutEntities()` in a migration to drop and recreate it.
 
+**Drop protection:** Materialized views implement the `RequiresExplicitDrop` interface,
+which prevents them from being accidentally dropped during blanket operations.
+Entities implementing this interface are only dropped when:
+
+- **Explicitly named:** `SqlEntity::drop(MyView::class)` or `SqlEntity::dropAll(types: MaterializedView::class)`
+- **Force flag:** `SqlEntity::dropAll(force: true)` or `php artisan sql-entities:drop --force`
+- **CLI with arguments:** `php artisan sql-entities:drop 'Database\Entities\Views\MyView'`
+
+Blanket calls without types or force will skip protected entities:
+
+```php
+SqlEntity::dropAll();                    // skips RequiresExplicitDrop entities
+SqlEntity::dropAll(force: true);         // drops everything
+SqlEntity::dropAll(types: MyView::class); // drops MyView (explicitly named)
+
+SqlEntity::withoutEntities(fn () => ...);                    // skips protected entities
+SqlEntity::withoutEntities(fn () => ..., types: MyView::class); // includes MyView
+SqlEntity::withoutEntities(fn () => ..., force: true);       // includes everything
+```
+
+You can apply the `RequiresExplicitDrop` interface to any entity type that you
+want to protect from accidental drops.
+
 #### 📐 Function
 
 The `Function_` class is used to create functions in the database.

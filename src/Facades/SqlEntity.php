@@ -19,7 +19,7 @@ use Override;
  * @method static void dropAll(array<int, class-string<SqlEntityContract>>|class-string<SqlEntityContract>|null $types = null, array<int, string>|string|null $connections = null)
  * @method static void refreshAll(array<int, class-string<SqlEntityContract>>|class-string<SqlEntityContract>|null $types = null, array<int, string>|string|null $connections = null)
  * @method static void refreshMaterializedData(array<int, class-string<SqlEntityContract>>|class-string<SqlEntityContract>|null $entities = null, array<int, string>|string|null $connections = null, bool|null $concurrent = null)
- * @method static void withoutEntities(Closure(Connection): mixed $callback, array<int, class-string<SqlEntityContract>>|class-string<SqlEntityContract>|null $types = null, array<int, string>|string|null $connections = null)
+ * @method static void withoutEntities(Closure(Connection): mixed $callback, array<int, class-string<SqlEntityContract>>|class-string<SqlEntityContract>|null $types = null, array<int, string>|string|null $connections = null, bool $force = false)
  *
  * @see SqlEntityManager
  */

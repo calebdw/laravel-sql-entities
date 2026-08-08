@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities;
 
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
+use CalebDW\SqlEntities\Contracts\RequiresExplicitDrop;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Support\Frequency;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-abstract class MaterializedView implements SqlEntity
+abstract class MaterializedView implements RequiresExplicitDrop, SqlEntity
 {
     use DefaultSqlEntityBehaviour;
 

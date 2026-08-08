@@ -129,6 +129,13 @@ Return `null` (default) to disable automatic scheduling. Scheduled refreshes use
 
 Definition changes require explicit drop+create via `withoutEntities()` in a migration, since there is no `CREATE OR REPLACE` for materialized views.
 
+Materialized views implement `RequiresExplicitDrop`, protecting them from accidental blanket drops. They are only dropped when:
+- Explicitly named: `SqlEntity::drop(MyView::class)` or `dropAll(types: MaterializedView::class)`
+- Force flag: `SqlEntity::dropAll(force: true)` or `php artisan sql-entities:drop --force`
+- CLI with arguments: `php artisan sql-entities:drop 'App\Views\MyView'`
+- `withoutEntities()` follows the same rules: blanket calls skip protected entities, pass `types:` or `force: true` to include them.
+- Any entity can implement `RequiresExplicitDrop` for the same protection.
+
 ### Functions
 
 Extend `CalebDW\SqlEntities\Function_` (trailing underscore because `function` is reserved in PHP).
