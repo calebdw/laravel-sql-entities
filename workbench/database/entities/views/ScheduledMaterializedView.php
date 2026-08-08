@@ -20,9 +20,9 @@ class ScheduledMaterializedView extends MaterializedView
     public bool $concurrent = false;
 
     #[Override]
-    public function schedule(Frequency $frequency): ?Frequency
+    public function schedule(Frequency $refresh): ?Frequency
     {
-        return $frequency->hourly();
+        return $refresh->hourly();
     }
 
     #[Override]

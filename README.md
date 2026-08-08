@@ -370,9 +370,9 @@ use CalebDW\SqlEntities\Support\Frequency;
 
 class ActiveUsersView extends MaterializedView
 {
-    public function schedule(Frequency $frequency): ?Frequency
+    public function schedule(Frequency $refresh): ?Frequency
     {
-        return $frequency->everyFifteenMinutes();
+        return $refresh->everyFifteenMinutes();
     }
 }
 ```

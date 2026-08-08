@@ -51,7 +51,7 @@ abstract class MaterializedView implements RequiresExplicitDrop, SqlEntity
     }
 
     /** The refresh schedule for this materialized view or null if none. */
-    public function schedule(Frequency $frequency): ?Frequency
+    public function schedule(Frequency $refresh): ?Frequency
     {
         return null;
     }

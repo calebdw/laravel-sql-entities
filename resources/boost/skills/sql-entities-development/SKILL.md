@@ -100,6 +100,7 @@ class ActiveUsersView extends MaterializedView
 ```
 
 MaterializedView-specific properties:
+
 - `protected ?array $columns = null` -- explicit column listing.
 - `protected bool $withData = true` -- populate data on creation (`WITH DATA` / `WITH NO DATA`).
 - `protected bool $concurrent = false` -- use `REFRESH ... CONCURRENTLY` (requires a unique index).
@@ -107,6 +108,7 @@ MaterializedView-specific properties:
 Query a materialized view: `ActiveUsersView::query()->get();`
 
 Refresh materialized view data (re-run the query):
+
 ```php
 SqlEntity::refreshMaterializedData();
 SqlEntity::refreshMaterializedData(connections: 'reporting');
@@ -119,9 +121,9 @@ Command: `php artisan sql-entities:refresh-materialized-data`
 ```php
 use CalebDW\SqlEntities\Support\Frequency;
 
-public function schedule(Frequency $frequency): ?Frequency
+public function schedule(Frequency $refresh): ?Frequency
 {
-    return $frequency->everyFifteenMinutes();
+    return $refresh->everyFifteenMinutes();
 }
 ```
 
@@ -130,6 +132,7 @@ Return `null` (default) to disable automatic scheduling. Scheduled refreshes use
 Definition changes require explicit drop+create via `withoutEntities()` in a migration, since there is no `CREATE OR REPLACE` for materialized views.
 
 Materialized views implement `RequiresExplicitDrop`, protecting them from accidental blanket drops. They are only dropped when:
+
 - Explicitly named: `SqlEntity::drop(MyView::class)` or `dropAll(types: MaterializedView::class)`
 - Force flag: `SqlEntity::dropAll(force: true)` or `php artisan sql-entities:drop --force`
 - CLI with arguments: `php artisan sql-entities:drop 'App\Views\MyView'`
@@ -200,6 +203,7 @@ class InsertLogProcedure extends Procedure
 ```
 
 Procedure-specific properties:
+
 - `protected array $arguments = []` -- argument types.
 - `protected string $language = 'SQL'` -- language (SQL, plpgsql, etc.).
 
