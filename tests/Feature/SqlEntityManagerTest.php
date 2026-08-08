@@ -24,10 +24,10 @@ dataset('drivers', [
 ]);
 
 dataset('typesAndConnections', [
-    'default args'         => ['types' => null, 'connections' => null, 'times' => 7],
+    'default args'         => ['types' => null, 'connections' => null, 'times' => 8],
     'single specific type' => ['types' => UserView::class, 'connections' => null, 'times' => 1],
-    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 6],
-    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 7],
+    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 7],
+    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 8],
     'single abstract type' => ['types' => View::class, 'connections' => null, 'times' => 3],
     'multiple types'       => ['types' => [UserView::class, FooConnectionUserView::class], 'connections' => null, 'times' => 2],
 ]);
@@ -223,6 +223,34 @@ it('skips entities that require force drop', function () {
         ->every(fn ($e) => ($e::class) && true);
 
     expect($dropped)->toBeTrue();
+});
+
+it('refreshes materialized data', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->times(2)
+        ->withArgs(fn ($sql) => str_contains($sql, 'REFRESH MATERIALIZED VIEW'));
+
+    test()->manager->refreshMaterializedData();
+});
+
+it('skips refreshing materialized data on unsupported driver', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->andReturn('sqlite')
+        ->shouldNotReceive('statement');
+
+    test()->manager->refreshMaterializedData();
+});
+
+it('refreshes materialized data with concurrent override', function () {
+    test()->connection
+        ->shouldReceive('getDriverName')->andReturn('pgsql')
+        ->shouldReceive('statement')
+        ->times(2)
+        ->withArgs(fn ($sql) => str_contains($sql, 'CONCURRENTLY'));
+
+    test()->manager->refreshMaterializedData(concurrent: true);
 });
 
 it('executes callbacks without entities', function (

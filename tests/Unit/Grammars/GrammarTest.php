@@ -14,6 +14,7 @@ use Illuminate\Database\Query\Builder;
 use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\procedures\InsertLogProcedure;
 use Workbench\Database\Entities\triggers\AccountAuditTrigger;
+use Workbench\Database\Entities\views\ActiveUserMaterializedView;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
@@ -56,6 +57,22 @@ it('compiles trigger drop', function () {
     expect($sql)->toBe(<<<'SQL'
         DROP TRIGGER IF EXISTS account_audit_trigger
         SQL);
+});
+
+it('throws when creating materialized view on unsupported driver', function () {
+    test()->grammar->compileCreate(new ActiveUserMaterializedView());
+})->throws(RuntimeException::class, 'Driver does not support materialized views.');
+
+it('throws when dropping materialized view on unsupported driver', function () {
+    test()->grammar->compileDrop(new ActiveUserMaterializedView());
+})->throws(RuntimeException::class, 'Driver does not support materialized views.');
+
+it('throws when refreshing materialized view data on unsupported driver', function () {
+    test()->grammar->compileRefreshData(new ActiveUserMaterializedView());
+})->throws(RuntimeException::class, 'Driver does not support materialized views.');
+
+it('does not support materialized views by default', function () {
+    expect(test()->grammar->supportsEntity(new ActiveUserMaterializedView()))->toBeFalse();
 });
 
 it('compiles view drop', function () {

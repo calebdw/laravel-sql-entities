@@ -663,31 +663,6 @@ php artisan sql-entities:drop
 php artisan sql-entities:refresh
 ```
 
-### 🚀 Automatic syncing when migrating
-
-SQL entities can be automatically synced whenever migrations run.
-To enable this, set the `sync` config option to `true`:
-
-```php
-// config/sql-entities.php
-'sync' => true,
-```
-
-When `drop_on_migrate` is disabled (the default), entities are only refreshed
-after migrations finish. The refresh uses `CREATE OR REPLACE` where possible and
-falls back to dropping and recreating if that fails (e.g., when a view's columns
-have changed).
-
-When `drop_on_migrate` is enabled, all entities are dropped before migrations
-start and recreated after they finish. This prevents failures when migrations
-alter tables that entities depend on, but means entities will be unavailable
-while migrations are running. If your application serves traffic during
-deployments (e.g., zero-downtime deploys), this will cause SQL errors for
-any requests that depend on those entities.
-
-Entities are also refreshed when there are no pending migrations, ensuring any
-newly added or updated entities are always created.
-
 ## 🤝 Contributing
 
 Thank you for considering contributing! You can read the contribution guide [here](CONTRIBUTING.md).

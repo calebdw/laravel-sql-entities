@@ -66,10 +66,10 @@
     "test:lint": "pint --test",
     "test:lint-fix": "pint",
     "test:static": "phpstan analyze --ansi -v",
-    "test:unit": "pest",
+    "test:unit": "@php -d zend.assertions=1 vendor/bin/pest --no-coverage",
     "test:coverage": [
       "@putenv XDEBUG_MODE=coverage",
-      "pest --coverage"
+      "@php -d zend.assertions=1 vendor/bin/pest --coverage"
     ],
     "test": [
       "@test:lint",
