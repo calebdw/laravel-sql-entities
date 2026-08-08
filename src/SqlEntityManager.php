@@ -225,6 +225,34 @@ class SqlEntityManager
     }
 
     /**
+     * Refresh the data of materialized views.
+     *
+     * @param array<int, class-string<SqlEntity>>|class-string<SqlEntity>|null $entities
+     * @param array<int, string>|string|null $connections
+     * @param bool|null $concurrent Override the entity's concurrent setting. Null uses the entity default.
+     */
+    public function refreshMaterializedData(
+        array|string|null $entities = null,
+        array|string|null $connections = null,
+        ?bool $concurrent = null,
+    ): void {
+        $this->entities
+            ->when($connections, $this->filterByConnections(...))
+            ->when($entities, $this->filterByTypes(...))
+            ->filter(fn ($entity) => $entity instanceof MaterializedView)
+            ->each(function ($entity) use ($concurrent) {
+                $connection = $this->connection($entity->connectionName());
+                $grammar    = $this->grammar($connection);
+
+                if (! $grammar->supportsEntity($entity)) {
+                    return;
+                }
+
+                $connection->statement($grammar->compileRefreshData($entity, $concurrent));
+            });
+    }
+
+    /**
      * Execute a callback (in a transaction, if supported) without the specified entities.
      *
      * @param Closure(Connection): mixed $callback

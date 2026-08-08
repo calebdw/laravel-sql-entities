@@ -72,6 +72,63 @@ Query a view directly:
 RecentOrdersView::query()->where('status', 'shipped')->get();
 ```
 
+### Materialized Views
+
+Extend `CalebDW\SqlEntities\MaterializedView`. PostgreSQL only.
+
+```php
+<?php
+
+namespace Database\Entities\Views;
+
+use CalebDW\SqlEntities\MaterializedView;
+use Override;
+
+class ActiveUsersView extends MaterializedView
+{
+    protected bool $withData = true;
+    protected bool $concurrent = false;
+
+    #[Override]
+    public function definition(): Builder|string
+    {
+        return <<<'SQL'
+            SELECT id, name, email FROM users WHERE active = true
+            SQL;
+    }
+}
+```
+
+MaterializedView-specific properties:
+- `protected ?array $columns = null` -- explicit column listing.
+- `protected bool $withData = true` -- populate data on creation (`WITH DATA` / `WITH NO DATA`).
+- `protected bool $concurrent = false` -- use `REFRESH ... CONCURRENTLY` (requires a unique index).
+
+Query a materialized view: `ActiveUsersView::query()->get();`
+
+Refresh materialized view data (re-run the query):
+```php
+SqlEntity::refreshMaterializedData();
+SqlEntity::refreshMaterializedData(connections: 'reporting');
+```
+
+Command: `php artisan sql-entities:refresh-materialized-data`
+
+**Self-scheduling:** Override the `schedule()` method to automatically register a materialized view with Laravel's scheduler:
+
+```php
+use CalebDW\SqlEntities\Support\Frequency;
+
+public function schedule(Frequency $frequency): ?Frequency
+{
+    return $frequency->everyFifteenMinutes();
+}
+```
+
+Return `null` (default) to disable automatic scheduling. Scheduled refreshes use `withoutOverlapping()` by default.
+
+Definition changes require explicit drop+create via `withoutEntities()` in a migration, since there is no `CREATE OR REPLACE` for materialized views.
+
 ### Functions
 
 Extend `CalebDW\SqlEntities\Function_` (trailing underscore because `function` is reserved in PHP).

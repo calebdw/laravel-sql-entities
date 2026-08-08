@@ -245,8 +245,121 @@ RecentOrdersView::query()
     ->get();
 ```
 
-<!-- #### 💿 Materialized View -->
-<!---->
+#### 💿 Materialized View
+
+The `MaterializedView` class is used to create materialized views in the database.
+
+> [!NOTE]
+> Materialized views are currently only supported on PostgreSQL. Other drivers
+> will skip materialized view entities automatically.
+
+In addition to the options above, you can use the following options to further customize the materialized view:
+
+```php
+<?php
+
+namespace Database\Entities\Views;
+
+use CalebDW\SqlEntities\MaterializedView;
+use Illuminate\Database\Query\Builder;
+use Override;
+
+class ActiveUsersView extends MaterializedView
+{
+    /** Whether to populate data on creation. */
+    protected bool $withData = true;
+
+    /** Whether to refresh concurrently (requires a unique index). */
+    protected bool $concurrent = false;
+
+    /** Explicit column listing. */
+    protected ?array $columns = null;
+
+    #[Override]
+    public function definition(): Builder|string
+    {
+        return <<<'SQL'
+            SELECT id, name, email
+            FROM users
+            WHERE active = true
+            SQL;
+    }
+}
+```
+
+Just like regular views, you can query a materialized view directly:
+
+```php
+ActiveUsersView::query()->where('name', 'like', '%John%')->get();
+```
+
+**Refreshing data:** Materialized views store their data on disk. To refresh the
+data (re-run the underlying query), use the `refreshMaterializedData()` method or the
+`sql-entities:refresh-materialized-data` command:
+
+```php
+use CalebDW\SqlEntities\Facades\SqlEntity;
+
+// Refresh all materialized views
+SqlEntity::refreshMaterializedData();
+
+// Refresh a specific materialized view
+SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class);
+
+// Refresh on a specific connection
+SqlEntity::refreshMaterializedData(connections: 'reporting');
+
+// Override the concurrent setting
+SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class, concurrent: true);
+SqlEntity::refreshMaterializedData(entities: ActiveUsersView::class, concurrent: false);
+```
+
+```bash
+# Refresh all materialized views
+php artisan sql-entities:refresh-materialized-data
+
+# Refresh a specific materialized view
+php artisan sql-entities:refresh-materialized-data 'Database\Entities\Views\ActiveUsersView'
+
+# Refresh on a specific connection
+php artisan sql-entities:refresh-materialized-data -c reporting
+
+# Override concurrent setting (class default can be overridden)
+php artisan sql-entities:refresh-materialized-data --concurrent
+php artisan sql-entities:refresh-materialized-data --no-concurrent
+```
+
+> [!TIP]
+> Materialized views can define their own refresh schedule using the fluent
+> `schedule()` method. Views with a schedule are automatically registered with
+> Laravel's scheduler (with `withoutOverlapping()` enabled by default):
+> ```php
+> use CalebDW\SqlEntities\MaterializedView;
+> use CalebDW\SqlEntities\Support\Frequency;
+>
+> class ActiveUsersView extends MaterializedView
+> {
+>     public function schedule(Frequency $frequency): ?Frequency
+>     {
+>         return $frequency->everyFifteenMinutes();
+>     }
+> }
+>
+> class SalesReportView extends MaterializedView
+> {
+>     public function schedule(Frequency $frequency): ?Frequency
+>     {
+>         return $frequency->hourly();
+>     }
+> }
+> ```
+> Return `null` from `schedule()` (the default) to disable automatic scheduling.
+
+> [!IMPORTANT]
+> `CREATE MATERIALIZED VIEW IF NOT EXISTS` is used for creation, which means
+> definition changes are not automatically applied. To update a materialized
+> view's definition, use `withoutEntities()` in a migration to drop and recreate it.
+
 #### 📐 Function
 
 The `Function_` class is used to create functions in the database.

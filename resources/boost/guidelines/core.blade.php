@@ -1,11 +1,11 @@
 ## Laravel SQL Entities
 
-This package manages SQL entities (views, functions, procedures, triggers) as class-based definitions under `database/entities/`. Entities are decoupled from migrations and always reflect the latest state.
+This package manages SQL entities (views, materialized views, functions, procedures, triggers) as class-based definitions under `database/entities/`. Entities are decoupled from migrations and always reflect the latest state.
 
 ### Key Conventions
 
 - Entity classes live in `database/entities/` (any subdirectory structure).
-- Each entity extends `CalebDW\SqlEntities\View`, `CalebDW\SqlEntities\Function_`, `CalebDW\SqlEntities\Procedure`, or `CalebDW\SqlEntities\Trigger`.
+- Each entity extends `CalebDW\SqlEntities\View`, `CalebDW\SqlEntities\MaterializedView`, `CalebDW\SqlEntities\Function_`, `CalebDW\SqlEntities\Procedure`, or `CalebDW\SqlEntities\Trigger`.
 - Entity names default to `snake_case` of the class basename. Override via `protected ?string $name`.
 - Use the `sql-entities-development` skill for detailed implementation patterns.
 

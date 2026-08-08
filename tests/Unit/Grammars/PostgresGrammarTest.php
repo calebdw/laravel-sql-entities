@@ -7,6 +7,7 @@ use Illuminate\Database\Connection;
 use Workbench\Database\Entities\functions\AddFunction;
 use Workbench\Database\Entities\procedures\InsertLogProcedure;
 use Workbench\Database\Entities\triggers\AccountAuditTrigger;
+use Workbench\Database\Entities\views\ActiveUserMaterializedView;
 use Workbench\Database\Entities\views\UserView;
 
 beforeEach(function () {
@@ -269,6 +270,97 @@ describe('compiles view create', function () {
         'cascaded' => ['cascaded', 'WITH CASCADED CHECK OPTION'],
         'true'     => [true, 'WITH CHECK OPTION'],
     ]);
+});
+
+describe('compiles materialized view create', function () {
+    beforeEach(function () {
+        test()->entity = new ActiveUserMaterializedView();
+    });
+
+    it('compiles successfully', function () {
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE MATERIALIZED VIEW IF NOT EXISTS active_user_materialized_view
+            AS SELECT id, name FROM users WHERE active = true
+            WITH DATA
+            SQL);
+    });
+
+    it('compiles with no data', function () {
+        test()->entity->withData = false;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE MATERIALIZED VIEW IF NOT EXISTS active_user_materialized_view
+            AS SELECT id, name FROM users WHERE active = true
+            WITH NO DATA
+            SQL);
+    });
+
+    it('compiles columns', function (array $columns, string $expected) {
+        test()->entity->columns = $columns;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<SQL
+            CREATE MATERIALIZED VIEW IF NOT EXISTS active_user_materialized_view{$expected}
+            AS SELECT id, name FROM users WHERE active = true
+            WITH DATA
+            SQL);
+    })->with([
+        'one column'  => [['id'], ' (id)'],
+        'two columns' => [['id', 'name'], ' (id, name)'],
+    ]);
+
+    it('compiles characteristics', function () {
+        test()->entity->characteristics = [
+            'TABLESPACE pg_default',
+        ];
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE MATERIALIZED VIEW IF NOT EXISTS active_user_materialized_view
+            TABLESPACE pg_default
+            AS SELECT id, name FROM users WHERE active = true
+            WITH DATA
+            SQL);
+    });
+});
+
+describe('compiles materialized view refresh data', function () {
+    beforeEach(function () {
+        test()->entity = new ActiveUserMaterializedView();
+    });
+
+    it('compiles successfully', function () {
+        $sql = test()->grammar->compileRefreshData(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            REFRESH MATERIALIZED VIEW active_user_materialized_view
+            SQL);
+    });
+
+    it('compiles concurrently', function () {
+        test()->entity->concurrent = true;
+
+        $sql = test()->grammar->compileRefreshData(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            REFRESH MATERIALIZED VIEW CONCURRENTLY active_user_materialized_view
+            SQL);
+    });
+});
+
+it('drops materialized view', function () {
+    $entity = new ActiveUserMaterializedView();
+    $sql    = test()->grammar->compileDrop($entity);
+
+    expect($sql)->toBe(<<<'SQL'
+        DROP MATERIALIZED VIEW IF EXISTS active_user_materialized_view
+        SQL);
 });
 
 it('drops function', function () {

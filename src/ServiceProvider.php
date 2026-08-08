@@ -7,9 +7,12 @@ namespace CalebDW\SqlEntities;
 use CalebDW\SqlEntities\Console\Commands\CreateCommand;
 use CalebDW\SqlEntities\Console\Commands\DropCommand;
 use CalebDW\SqlEntities\Console\Commands\RefreshCommand;
+use CalebDW\SqlEntities\Console\Commands\RefreshMaterializedDataCommand;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Listeners\SyncSqlEntities;
 use CalebDW\SqlEntities\Support\Composer;
+use CalebDW\SqlEntities\Support\Frequency;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
@@ -47,12 +50,32 @@ class ServiceProvider extends IlluminateServiceProvider
                 CreateCommand::class,
                 DropCommand::class,
                 RefreshCommand::class,
+                RefreshMaterializedDataCommand::class,
             ]);
         }
 
         if (config('sql-entities.sync', false)) {
             Event::subscribe(SyncSqlEntities::class);
         }
+
+        $this->app->afterResolving(Schedule::class, function (Schedule $schedule) {
+            $manager = resolve(SqlEntityManager::class);
+
+            $manager->entities
+                ->filter(fn ($entity) => $entity instanceof MaterializedView)
+                ->each(function ($entity) use ($schedule) {
+                    $frequency = $entity->schedule(new Frequency());
+
+                    if ($frequency === null) {
+                        return;
+                    }
+
+                    $schedule
+                        ->command('sql-entities:refresh-materialized-data', [$entity::class])
+                        ->cron($frequency->expression)
+                        ->withoutOverlapping();
+                });
+        });
     }
 
     /** @return Collection<int, SqlEntity> */

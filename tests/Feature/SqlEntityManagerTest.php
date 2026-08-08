@@ -24,10 +24,10 @@ dataset('drivers', [
 ]);
 
 dataset('typesAndConnections', [
-    'default args'         => ['types' => null, 'connections' => null, 'times' => 6],
+    'default args'         => ['types' => null, 'connections' => null, 'times' => 7],
     'single specific type' => ['types' => UserView::class, 'connections' => null, 'times' => 1],
-    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 5],
-    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 6],
+    'single connection'    => ['types' => null, 'connections' => 'default', 'times' => 6],
+    'multiple connections' => ['types' => null, 'connections' => ['default', 'foo'], 'times' => 7],
     'single abstract type' => ['types' => View::class, 'connections' => null, 'times' => 3],
     'multiple types'       => ['types' => [UserView::class, FooConnectionUserView::class], 'connections' => null, 'times' => 2],
 ]);
