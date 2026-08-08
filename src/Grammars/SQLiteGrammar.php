@@ -6,6 +6,7 @@ namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Procedure;
 use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
@@ -17,7 +18,8 @@ class SQLiteGrammar extends Grammar
     public function supportsEntity(SqlEntity $entity): bool
     {
         return match (true) {
-            $entity instanceof Function_ => false,
+            $entity instanceof Function_  => false,
+            $entity instanceof Procedure  => false,
 
             default => parent::supportsEntity($entity),
         };
@@ -27,6 +29,12 @@ class SQLiteGrammar extends Grammar
     protected function compileFunctionCreate(Function_ $entity): string
     {
         throw new RuntimeException('SQLite does not support user-defined functions.');
+    }
+
+    #[Override]
+    protected function compileProcedureCreate(Procedure $entity): string
+    {
+        throw new RuntimeException('SQLite does not support stored procedures.');
     }
 
     #[Override]

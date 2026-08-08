@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Procedure;
 use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
@@ -29,6 +30,19 @@ class MariaDbGrammar extends Grammar
             RETURNS {$entity->returns()}
             {$characteristics}
             {$definition}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileProcedureCreate(Procedure $entity): string
+    {
+        $arguments       = $this->compileList($entity->arguments());
+        $characteristics = implode("\n", $entity->characteristics());
+
+        return <<<SQL
+            CREATE OR REPLACE PROCEDURE {$entity->name()}{$arguments}
+            {$characteristics}
+            {$entity->toString()}
             SQL;
     }
 

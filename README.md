@@ -321,8 +321,40 @@ class Add extends Function_
 }
 ```
 
-<!-- #### 📤 Procedure -->
-<!---->
+#### 📤 Procedure
+
+The `Procedure` class is used to create stored procedures in the database.
+In addition to the options above, you can use the following options to further customize the procedure:
+
+```php
+<?php
+
+namespace Database\Entities\Procedures;
+
+use CalebDW\SqlEntities\Procedure;
+
+class InsertLogProcedure extends Procedure
+{
+    protected array $arguments = [
+        'message text',
+    ];
+
+    /** The language the procedure is written in. */
+    protected string $language = 'SQL';
+
+    #[Override]
+    public function definition(): string
+    {
+        return <<<'SQL'
+            INSERT INTO logs (message, created_at) VALUES (message, NOW());
+            SQL;
+    }
+}
+```
+
+> [!NOTE]
+> SQLite does not support stored procedures. The grammar will skip procedure
+> entities on SQLite connections.
 
 #### ⚡ Trigger
 

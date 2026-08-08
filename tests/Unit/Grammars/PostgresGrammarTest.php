@@ -5,6 +5,7 @@ declare(strict_types=1);
 use CalebDW\SqlEntities\Grammars\PostgresGrammar;
 use Illuminate\Database\Connection;
 use Workbench\Database\Entities\functions\AddFunction;
+use Workbench\Database\Entities\procedures\InsertLogProcedure;
 use Workbench\Database\Entities\triggers\AccountAuditTrigger;
 use Workbench\Database\Entities\views\UserView;
 
@@ -94,6 +95,58 @@ describe('compiles function create', function () {
             DETERMINISTIC
             CONTAINS SQL
             RETURN $1 + $2;
+            SQL);
+    });
+});
+
+describe('compiles procedure create', function () {
+    beforeEach(function () {
+        test()->entity = new InsertLogProcedure();
+    });
+
+    it('compiles successfully', function () {
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE PROCEDURE insert_log_procedure(message text)
+            LANGUAGE SQL
+            INSERT INTO logs (message, created_at) VALUES (message, NOW());
+            SQL);
+    });
+
+    it('compiles plpgsql', function () {
+        test()->entity->language   = 'plpgsql';
+        test()->entity->definition = <<<'SQL'
+            BEGIN
+                INSERT INTO logs (message, created_at) VALUES (message, NOW());
+            END;
+            SQL;
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE PROCEDURE insert_log_procedure(message text)
+            LANGUAGE plpgsql
+            AS $procedure$
+            BEGIN
+                INSERT INTO logs (message, created_at) VALUES (message, NOW());
+            END;
+            $procedure$
+            SQL);
+    });
+
+    it('compiles characteristics', function () {
+        test()->entity->characteristics = [
+            'SECURITY DEFINER',
+        ];
+
+        $sql = test()->grammar->compileCreate(test()->entity);
+
+        expect($sql)->toBe(<<<'SQL'
+            CREATE OR REPLACE PROCEDURE insert_log_procedure(message text)
+            LANGUAGE SQL
+            SECURITY DEFINER
+            INSERT INTO logs (message, created_at) VALUES (message, NOW());
             SQL);
     });
 });

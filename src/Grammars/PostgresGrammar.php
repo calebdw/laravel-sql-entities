@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Procedure;
 use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
@@ -41,6 +42,27 @@ class PostgresGrammar extends Grammar
 
         return <<<SQL
             DROP FUNCTION IF EXISTS {$entity->name()}{$arguments}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileProcedureCreate(Procedure $entity): string
+    {
+        $arguments       = $this->compileList($entity->arguments());
+        $language        = $entity->language();
+        $definition      = $entity->toString();
+        $characteristics = implode("\n", $entity->characteristics());
+
+        $definition = match (true) {
+            strtolower($language) !== 'sql' => "AS \$procedure$\n{$definition}\n\$procedure$",
+            default                         => $definition,
+        };
+
+        return <<<SQL
+            CREATE OR REPLACE PROCEDURE {$entity->name()}{$arguments}
+            LANGUAGE {$language}
+            {$characteristics}
+            {$definition}
             SQL;
     }
 

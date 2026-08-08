@@ -108,6 +108,39 @@ Function-specific properties:
 - `protected bool $loadable = false` -- for loadable (shared library) functions.
 - `protected string $returns` -- return type.
 
+### Procedures
+
+Extend `CalebDW\SqlEntities\Procedure`.
+
+```php
+<?php
+
+namespace Database\Entities\Procedures;
+
+use CalebDW\SqlEntities\Procedure;
+use Override;
+
+class InsertLogProcedure extends Procedure
+{
+    protected array $arguments = ['message text'];
+    protected string $language = 'SQL';
+
+    #[Override]
+    public function definition(): string
+    {
+        return <<<'SQL'
+            INSERT INTO logs (message, created_at) VALUES (message, NOW());
+            SQL;
+    }
+}
+```
+
+Procedure-specific properties:
+- `protected array $arguments = []` -- argument types.
+- `protected string $language = 'SQL'` -- language (SQL, plpgsql, etc.).
+
+Note: SQLite does not support stored procedures. The grammar will skip procedure entities on SQLite connections.
+
 ### Triggers
 
 Extend `CalebDW\SqlEntities\Trigger`.

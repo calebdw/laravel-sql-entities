@@ -6,6 +6,7 @@ namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Procedure;
 use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
@@ -23,9 +24,10 @@ abstract class Grammar
     public function compileCreate(SqlEntity $entity): string
     {
         $statement = match (true) {
-            $entity instanceof Function_ => $this->compileFunctionCreate($entity),
-            $entity instanceof Trigger   => $this->compileTriggerCreate($entity),
-            $entity instanceof View      => $this->compileViewCreate($entity),
+            $entity instanceof Function_  => $this->compileFunctionCreate($entity),
+            $entity instanceof Procedure  => $this->compileProcedureCreate($entity),
+            $entity instanceof Trigger    => $this->compileTriggerCreate($entity),
+            $entity instanceof View       => $this->compileViewCreate($entity),
 
             default => throw new InvalidArgumentException(
                 sprintf('Unsupported entity [%s].', $entity::class),
@@ -39,9 +41,10 @@ abstract class Grammar
     public function compileDrop(SqlEntity $entity): string
     {
         $statement = match (true) {
-            $entity instanceof Function_ => $this->compileFunctionDrop($entity),
-            $entity instanceof Trigger   => $this->compileTriggerDrop($entity),
-            $entity instanceof View      => $this->compileViewDrop($entity),
+            $entity instanceof Function_  => $this->compileFunctionDrop($entity),
+            $entity instanceof Procedure  => $this->compileProcedureDrop($entity),
+            $entity instanceof Trigger    => $this->compileTriggerDrop($entity),
+            $entity instanceof View       => $this->compileViewDrop($entity),
 
             default => throw new InvalidArgumentException(
                 sprintf('Unsupported entity [%s].', $entity::class),
@@ -55,10 +58,11 @@ abstract class Grammar
     public function supportsEntity(SqlEntity $entity): bool
     {
         return match (true) {
-            $entity instanceof Function_ => true,
-            $entity instanceof Trigger   => true,
-            $entity instanceof View      => true,
-            default                      => false,
+            $entity instanceof Function_  => true,
+            $entity instanceof Procedure  => true,
+            $entity instanceof Trigger    => true,
+            $entity instanceof View       => true,
+            default                       => false,
         };
     }
 
@@ -68,6 +72,15 @@ abstract class Grammar
     {
         return <<<SQL
             DROP FUNCTION IF EXISTS {$entity->name()}
+            SQL;
+    }
+
+    abstract protected function compileProcedureCreate(Procedure $entity): string;
+
+    protected function compileProcedureDrop(Procedure $entity): string
+    {
+        return <<<SQL
+            DROP PROCEDURE IF EXISTS {$entity->name()}
             SQL;
     }
 

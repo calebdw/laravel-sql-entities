@@ -5,6 +5,7 @@ declare(strict_types=1);
 use CalebDW\SqlEntities\Grammars\SQLiteGrammar;
 use Illuminate\Database\Connection;
 use Workbench\Database\Entities\functions\AddFunction;
+use Workbench\Database\Entities\procedures\InsertLogProcedure;
 use Workbench\Database\Entities\triggers\AccountAuditTrigger;
 use Workbench\Database\Entities\views\UserView;
 
@@ -17,6 +18,12 @@ describe('compiles create function', function () {
     it('throws exception', function () {
         test()->grammar->compileCreate(new AddFunction());
     })->throws('SQLite does not support user-defined functions.');
+});
+
+describe('compiles create procedure', function () {
+    it('throws exception', function () {
+        test()->grammar->compileCreate(new InsertLogProcedure());
+    })->throws('SQLite does not support stored procedures.');
 });
 
 describe('compiles trigger create', function () {

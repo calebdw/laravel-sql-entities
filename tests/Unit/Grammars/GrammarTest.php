@@ -6,11 +6,13 @@ use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use CalebDW\SqlEntities\Function_;
 use CalebDW\SqlEntities\Grammars\Grammar;
+use CalebDW\SqlEntities\Procedure;
 use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Workbench\Database\Entities\functions\AddFunction;
+use Workbench\Database\Entities\procedures\InsertLogProcedure;
 use Workbench\Database\Entities\triggers\AccountAuditTrigger;
 use Workbench\Database\Entities\views\UserView;
 
@@ -40,6 +42,14 @@ it('compiles function drop', function () {
         SQL);
 });
 
+it('compiles procedure drop', function () {
+    $sql = test()->grammar->compileDrop(new InsertLogProcedure());
+
+    expect($sql)->toBe(<<<'SQL'
+        DROP PROCEDURE IF EXISTS insert_log_procedure
+        SQL);
+});
+
 it('compiles trigger drop', function () {
     $sql = test()->grammar->compileDrop(new AccountAuditTrigger());
 
@@ -64,6 +74,11 @@ class TestGrammar extends Grammar
     }
 
     protected function compileFunctionCreate(Function_ $entity): string
+    {
+        return '';
+    }
+
+    protected function compileProcedureCreate(Procedure $entity): string
     {
         return '';
     }

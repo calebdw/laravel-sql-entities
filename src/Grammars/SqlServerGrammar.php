@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CalebDW\SqlEntities\Grammars;
 
 use CalebDW\SqlEntities\Function_;
+use CalebDW\SqlEntities\Procedure;
 use CalebDW\SqlEntities\Trigger;
 use CalebDW\SqlEntities\View;
 use Override;
@@ -27,6 +28,20 @@ class SqlServerGrammar extends Grammar
             RETURNS {$entity->returns()}
             {$characteristics}
             {$definition}
+            SQL;
+    }
+
+    #[Override]
+    protected function compileProcedureCreate(Procedure $entity): string
+    {
+        $arguments       = $this->compileList($entity->arguments());
+        $characteristics = implode("\n", $entity->characteristics());
+
+        return <<<SQL
+            CREATE OR ALTER PROCEDURE {$entity->name()} {$arguments}
+            AS
+            {$characteristics}
+            {$entity->toString()}
             SQL;
     }
 
