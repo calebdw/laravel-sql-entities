@@ -30,7 +30,7 @@ abstract class Function_ implements SqlEntity
     /** The function return type. */
     protected string $returns;
 
-    /** The language the function is written in. */
+    /** If the function aggregates. */
     public function aggregate(): bool
     {
         return $this->aggregate;

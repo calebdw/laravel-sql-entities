@@ -47,12 +47,12 @@ class PostgresGrammar extends Grammar
     #[Override]
     protected function compileTriggerCreate(Trigger $entity): string
     {
-        $contraint       = $entity->constraint() ? 'CONSTRAINT' : '';
+        $constraint      = $entity->constraint() ? 'CONSTRAINT' : '';
         $events          = implode(' OR ', $entity->events());
         $characteristics = implode("\n", $entity->characteristics());
 
         return <<<SQL
-            CREATE OR REPLACE {$contraint} TRIGGER {$entity->name()}
+            CREATE OR REPLACE {$constraint} TRIGGER {$entity->name()}
             {$entity->timing()} {$events}
             ON {$entity->table()}
             {$characteristics}

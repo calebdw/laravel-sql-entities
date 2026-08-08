@@ -79,9 +79,12 @@ The package ships with a configuration file that controls automatic syncing beha
 | Option | Default | Description |
 |---|---|---|
 | `sync` | `false` | Automatically sync (refresh) entities whenever migrations run. |
-| `drop_on_migrate` | `true` | Drop all entities before migrations start and recreate them after. When `false`, entities are only refreshed after migrations finish. |
+| `drop_on_migrate` | `false` | Drop all entities before migrations start and recreate them after. When `false` (the default), entities are only refreshed after migrations finish. |
 
 When `drop_on_migrate` is enabled, all entities are dropped before migrations begin to prevent failures caused by dependent schema changes (e.g., dropping a column that a view references). However, this means entities will be unavailable while migrations are running, which can be problematic if the application is still serving requests.
+
+> [!WARNING]
+> If you run migrations while the application is still serving traffic (e.g., zero-downtime or rolling deployments), enabling `drop_on_migrate` will cause SQL errors for any requests that depend on those entities until migrations complete and the entities are recreated.
 
 When disabled, entities are refreshed (using `CREATE OR REPLACE`) after migrations finish. If a refresh fails due to a schema change, the entity is automatically dropped and recreated. For migrations that require specific entities to be absent, you can use the [`withoutEntities()`](#%EF%B8%8F-withoutentities) method for more granular control.
 
@@ -463,13 +466,17 @@ To enable this, set the `sync` config option to `true`:
 'sync' => true,
 ```
 
-When `drop_on_migrate` is enabled (the default), all entities are dropped before
-migrations start and recreated after they finish. This prevents failures when
-migrations alter tables that entities depend on.
+When `drop_on_migrate` is disabled (the default), entities are only refreshed
+after migrations finish. The refresh uses `CREATE OR REPLACE` where possible and
+falls back to dropping and recreating if that fails (e.g., when a view's columns
+have changed).
 
-When `drop_on_migrate` is disabled, entities are only refreshed after migrations
-finish. The refresh uses `CREATE OR REPLACE` where possible and falls back to
-dropping and recreating if that fails (e.g., when a view's columns have changed).
+When `drop_on_migrate` is enabled, all entities are dropped before migrations
+start and recreated after they finish. This prevents failures when migrations
+alter tables that entities depend on, but means entities will be unavailable
+while migrations are running. If your application serves traffic during
+deployments (e.g., zero-downtime deploys), this will cause SQL errors for
+any requests that depend on those entities.
 
 Entities are also refreshed when there are no pending migrations, ensuring any
 newly added or updated entities are always created.

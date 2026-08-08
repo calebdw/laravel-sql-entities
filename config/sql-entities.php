@@ -41,5 +41,5 @@ return [
     | migration run.
     |
     */
-    'drop_on_migrate' => true,
+    'drop_on_migrate' => false,
 ];

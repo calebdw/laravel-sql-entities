@@ -31,11 +31,13 @@ describe('started', function () {
         );
     });
     it('drops all entities', function () {
+        $listener = new SyncSqlEntities(test()->manager, dropOnMigrate: true);
+
         test()->manager
             ->shouldReceive('dropAll')
             ->once();
 
-        test()->listener->handleStarted(
+        $listener->handleStarted(
             new MigrationsStarted(method: 'up'),
         );
     });
@@ -94,7 +96,9 @@ describe('no pending', function () {
 
 describe('subscribe', function () {
     it('includes MigrationsStarted when dropAllWhenMigrating is true', function () {
-        $events = test()->listener->subscribe();
+        $listener = new SyncSqlEntities(test()->manager, dropOnMigrate: true);
+
+        $events = $listener->subscribe();
 
         expect($events)
             ->toHaveKey(MigrationsStarted::class)
