@@ -1,0 +1,33 @@
+---
+name: TIA Baseline
+on:
+  push:
+    branches: [master]
+  schedule: [{cron: '0 3 * * *'}]
+  workflow_dispatch:
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: shivammathur/setup-php@v2
+        with: {php-version: '8.4', coverage: xdebug}
+      - run: composer install --no-interaction --prefer-dist
+
+      - name: Run tests
+        # @todo: remove once this is merged: https://github.com/pestphp/pest/pull/1845
+        # run: ./vendor/bin/pest --parallel --tia --coverage --fresh
+        run: ./vendor/bin/pest --parallel --tia --no-coverage --fresh
+
+      - name: Resolve TIA baseline path
+        id: baseline
+        run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload TIA baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-tia-baseline
+          path: ${{ steps.baseline.outputs.path }}
+          include-hidden-files: true
+          retention-days: 30
