@@ -23,7 +23,7 @@ use Illuminate\Support\ItemNotFoundException;
 use InvalidArgumentException;
 
 /**
- * @phpstan-type TEntities Collection<class-string<SqlEntity>, SqlEntity>
+ * @phpstan-type TEntities Collection<class-string<SqlEntity>&literal-string, SqlEntity>
  */
 class SqlEntityManager
 {
