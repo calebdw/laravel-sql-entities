@@ -43,7 +43,7 @@
     "illuminate/support": "^12.0 || ^13.0"
   },
   "require-dev": {
-    "calebdw/larastan": "^3.0",
+    "calebdw/phpstan-laravel": "^1.0",
     "laravel/pint": "^1.16.2",
     "orchestra/testbench": "^10.0 || ^11.0",
     "pestphp/pest": "^4.0 || ^5.0"

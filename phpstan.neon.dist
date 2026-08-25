@@ -1,5 +1,5 @@
 includes:
-  - vendor/calebdw/larastan/extension.neon
+  - vendor/calebdw/phpstan-laravel/extension.neon
 parameters:
   level: 8
   paths:
