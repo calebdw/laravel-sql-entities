@@ -12,7 +12,6 @@ use CalebDW\SqlEntities\Attributes\Name;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Str;
-use Illuminate\Support\Traits\ReadsClassAttributes;
 use Override;
 use UnitEnum;
 

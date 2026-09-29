@@ -76,13 +76,13 @@ class SqlEntityManager
      */
     public function get(string $class): SqlEntity
     {
-        $entity = $this->entities->get($class);
-
-        if ($entity === null) {
-            throw new ItemNotFoundException("Entity [{$class}] not found.");
+        foreach ($this->entities as $name => $entity) {
+            if ($name === $class) {
+                return $entity;
+            }
         }
 
-        return $entity;
+        throw new ItemNotFoundException("Entity [{$class}] not found.");
     }
 
     /**
