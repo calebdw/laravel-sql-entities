@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
+use CalebDW\SqlEntities\Attributes\Arguments;
+use CalebDW\SqlEntities\Attributes\Language;
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 
@@ -28,12 +30,12 @@ abstract class Procedure implements SqlEntity
      */
     public function arguments(): array
     {
-        return $this->arguments;
+        return $this->stringList(Arguments::class, 'arguments');
     }
 
     /** The language the procedure is written in. */
     public function language(): string
     {
-        return $this->language;
+        return $this->stringAttribute(Language::class, 'language');
     }
 }

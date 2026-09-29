@@ -53,7 +53,15 @@
       "providers": [
         "CalebDW\\SqlEntities\\ServiceProvider"
       ]
+    },
+    "phpstan": {
+      "includes": [
+        "extension.neon"
+      ]
     }
+  },
+  "suggest": {
+    "phpstan/phpstan": "To report SQL entities that are missing required configuration."
   },
   "config": {
     "sort-packages": true,

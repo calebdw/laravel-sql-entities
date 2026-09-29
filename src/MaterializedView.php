@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
+use CalebDW\SqlEntities\Attributes\Columns;
+use CalebDW\SqlEntities\Attributes\Concurrent;
+use CalebDW\SqlEntities\Attributes\WithData;
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\RequiresExplicitDrop;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
@@ -35,19 +38,19 @@ abstract class MaterializedView implements RequiresExplicitDrop, SqlEntity
      */
     public function columns(): ?array
     {
-        return $this->columns;
+        return $this->optionalStringList(Columns::class, 'columns');
     }
 
     /** Whether to populate data on creation. */
     public function withData(): bool
     {
-        return $this->withData;
+        return $this->boolAttribute(WithData::class, 'withData');
     }
 
     /** Whether to refresh concurrently. */
     public function isConcurrent(): bool
     {
-        return $this->concurrent;
+        return $this->boolAttribute(Concurrent::class, 'concurrent');
     }
 
     /** The refresh schedule for this materialized view or null if none. */

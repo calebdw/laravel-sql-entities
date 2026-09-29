@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
+use CalebDW\SqlEntities\Attributes\CheckOption;
+use CalebDW\SqlEntities\Attributes\Columns;
+use CalebDW\SqlEntities\Attributes\Recursive;
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 use Illuminate\Database\Query\Builder;
@@ -30,14 +33,16 @@ abstract class View implements SqlEntity
     /** If the view is recursive. */
     protected bool $recursive = false;
 
-    /**
-     * The check option for the view.
-     *
-     * @return 'cascaded'|'local'|true|null
-     */
+    /** The check option for the view. */
     public function checkOption(): string|true|null
     {
-        return $this->checkOption;
+        $option = $this->getAttributeValue($this, CheckOption::class, 'checkOption');
+
+        if ($option === null || $option === true || is_string($option)) {
+            return $option;
+        }
+
+        return null;
     }
 
     /**
@@ -47,13 +52,13 @@ abstract class View implements SqlEntity
      */
     public function columns(): ?array
     {
-        return $this->columns;
+        return $this->optionalStringList(Columns::class, 'columns');
     }
 
     /** If the view is recursive. */
     public function isRecursive(): bool
     {
-        return $this->recursive;
+        return $this->boolAttribute(Recursive::class, 'recursive');
     }
 
     public static function query(?string $as = null): Builder

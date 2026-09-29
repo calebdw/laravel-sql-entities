@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace CalebDW\SqlEntities;
 
+use CalebDW\SqlEntities\Attributes\Constraint;
+use CalebDW\SqlEntities\Attributes\Events;
+use CalebDW\SqlEntities\Attributes\Table;
+use CalebDW\SqlEntities\Attributes\Timing;
 use CalebDW\SqlEntities\Concerns\DefaultSqlEntityBehaviour;
 use CalebDW\SqlEntities\Contracts\SqlEntity;
 
@@ -30,7 +34,7 @@ abstract class Trigger implements SqlEntity
     /** If the trigger is a constraint trigger. */
     public function constraint(): bool
     {
-        return $this->constraint;
+        return $this->boolAttribute(Constraint::class, 'constraint');
     }
 
     /**
@@ -40,18 +44,18 @@ abstract class Trigger implements SqlEntity
      */
     public function events(): array
     {
-        return $this->events;
+        return $this->stringList(Events::class, 'events', null);
     }
 
     /** The table the trigger is associated with. */
     public function table(): string
     {
-        return $this->table;
+        return $this->stringAttribute(Table::class, 'table');
     }
 
     /** The trigger timing. */
     public function timing(): string
     {
-        return $this->timing;
+        return $this->stringAttribute(Timing::class, 'timing');
     }
 }

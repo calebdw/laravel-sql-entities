@@ -60,11 +60,11 @@ class RecentOrdersView extends View
 }
 ```
 
-View-specific properties:
+Prefer attributes over properties:
 
-- `protected bool $recursive = false` -- create a recursive view.
-- `protected string|true|null $checkOption = null` -- `'cascaded'`, `'local'`, or `true` for `WITH CHECK OPTION`.
-- `protected ?array $columns = null` -- explicit column listing.
+- `#[Recursive]` -- create a recursive view. `#[Recursive(false)]` turns it off.
+- `#[CheckOption]` or `#[CheckOption('cascaded')]` -- `WITH CHECK OPTION`. Also accepts `'local'`.
+- `#[Columns('id')]` or `#[Columns(['id', 'name'])]` -- explicit column listing.
 
 Query a view directly:
 
@@ -81,14 +81,15 @@ Extend `CalebDW\SqlEntities\MaterializedView`. PostgreSQL only.
 
 namespace Database\Entities\Views;
 
+use CalebDW\SqlEntities\Attributes\Columns;
+use CalebDW\SqlEntities\Attributes\Concurrent;
 use CalebDW\SqlEntities\MaterializedView;
 use Override;
 
+#[Columns(['id', 'name', 'email'])]
+#[Concurrent]
 class ActiveUsersView extends MaterializedView
 {
-    protected bool $withData = true;
-    protected bool $concurrent = false;
-
     #[Override]
     public function definition(): Builder|string
     {
@@ -99,11 +100,11 @@ class ActiveUsersView extends MaterializedView
 }
 ```
 
-MaterializedView-specific properties:
+Prefer attributes over properties:
 
-- `protected ?array $columns = null` -- explicit column listing.
-- `protected bool $withData = true` -- populate data on creation (`WITH DATA` / `WITH NO DATA`).
-- `protected bool $concurrent = false` -- use `REFRESH ... CONCURRENTLY` (requires a unique index).
+- `#[Columns(['id', 'name'])]` -- explicit column listing.
+- `#[WithData(false)]` -- create with `WITH NO DATA`. Omit it to populate on creation.
+- `#[Concurrent]` -- use `REFRESH ... CONCURRENTLY` (requires a unique index).
 
 Query a materialized view: `ActiveUsersView::query()->get();`
 
@@ -148,15 +149,15 @@ Extend `CalebDW\SqlEntities\Function_` (trailing underscore because `function` i
 
 namespace Database\Entities\Functions;
 
+use CalebDW\SqlEntities\Attributes\Arguments;
+use CalebDW\SqlEntities\Attributes\Returns;
 use CalebDW\SqlEntities\Function_;
 use Override;
 
+#[Arguments(['integer', 'integer'])]
+#[Returns('integer')]
 class Add extends Function_
 {
-    protected array $arguments = ['integer', 'integer'];
-    protected string $language = 'SQL';
-    protected string $returns = 'integer';
-
     #[Override]
     public function definition(): string
     {
@@ -167,13 +168,12 @@ class Add extends Function_
 }
 ```
 
-Function-specific properties:
+Prefer attributes over properties. `#[Returns]` is required.
 
-- `protected bool $aggregate = false` -- if the function aggregates.
-- `protected array $arguments = []` -- argument types.
-- `protected string $language = 'SQL'` -- language (SQL, plpgsql, c, etc.).
-- `protected bool $loadable = false` -- for loadable (shared library) functions.
-- `protected string $returns` -- return type.
+- `#[Aggregate]` -- if the function aggregates.
+- `#[Arguments(['integer', 'integer'])]` -- argument types.
+- `#[Language('plpgsql')]` -- language. Defaults to SQL.
+- `#[Loadable]` -- for loadable (shared library) functions.
 
 ### Procedures
 
@@ -184,14 +184,13 @@ Extend `CalebDW\SqlEntities\Procedure`.
 
 namespace Database\Entities\Procedures;
 
+use CalebDW\SqlEntities\Attributes\Arguments;
 use CalebDW\SqlEntities\Procedure;
 use Override;
 
+#[Arguments('message text')]
 class InsertLogProcedure extends Procedure
 {
-    protected array $arguments = ['message text'];
-    protected string $language = 'SQL';
-
     #[Override]
     public function definition(): string
     {
@@ -202,10 +201,10 @@ class InsertLogProcedure extends Procedure
 }
 ```
 
-Procedure-specific properties:
+Prefer attributes over properties:
 
-- `protected array $arguments = []` -- argument types.
-- `protected string $language = 'SQL'` -- language (SQL, plpgsql, etc.).
+- `#[Arguments('message text')]` or `#[Arguments(['message text'])]` -- argument types.
+- `#[Language('plpgsql')]` -- language. Defaults to SQL.
 
 Note: SQLite does not support stored procedures. The grammar will skip procedure entities on SQLite connections.
 
@@ -218,15 +217,17 @@ Extend `CalebDW\SqlEntities\Trigger`.
 
 namespace Database\Entities\Triggers;
 
+use CalebDW\SqlEntities\Attributes\Events;
+use CalebDW\SqlEntities\Attributes\Table;
+use CalebDW\SqlEntities\Attributes\Timing;
 use CalebDW\SqlEntities\Trigger;
 use Override;
 
+#[Events('UPDATE')]
+#[Table('accounts')]
+#[Timing('AFTER')]
 class AccountAuditTrigger extends Trigger
 {
-    protected string $timing = 'AFTER';
-    protected array $events = ['UPDATE'];
-    protected string $table = 'accounts';
-
     #[Override]
     public function definition(): string
     {
@@ -237,39 +238,53 @@ class AccountAuditTrigger extends Trigger
 }
 ```
 
-Trigger-specific properties:
+Prefer attributes over properties. `#[Table]`, `#[Timing]`, and `#[Events]` are required.
 
-- `protected bool $constraint = false` -- constraint trigger (PostgreSQL only).
-- `protected array $events` -- trigger events (UPDATE, INSERT, DELETE).
-- `protected string $table` -- the table the trigger fires on.
-- `protected string $timing` -- BEFORE, AFTER, or INSTEAD OF.
+- `#[Constraint]` -- constraint trigger (PostgreSQL only).
+- `#[Events('UPDATE')]` or `#[Events(['INSERT', 'UPDATE'])]` -- trigger events.
+- `#[Table('accounts')]` -- the table the trigger fires on.
+- `#[Timing('AFTER')]` -- `BEFORE`, `AFTER`, or `INSTEAD OF`.
 
-## Common Entity Properties
+## Configuration
 
-All entity types share these properties:
+Prefer attributes over properties for every option below. Properties still work, but do not use them in new entities.
 
-- `protected ?string $name = null` -- defaults to `snake_case` of class basename. Supports schema prefix: `'other_schema.entity_name'`.
-- `protected ?string $connection = null` -- database connection name.
-- `protected array $characteristics = []` -- additional SQL characteristics appended to the statement.
-- `protected array $dependencies = []` -- array of entity class names this entity depends on.
+- `#[Name('other_schema.entity_name')]` -- defaults to `snake_case` of the class basename. Supports a schema prefix.
+- `#[Connection('reporting')]` -- database connection name. Also accepts a `UnitEnum`.
+- `#[Characteristics('WITH SCHEMABINDING')]` -- additional SQL characteristics appended to the statement.
+- `#[DependsOn(OrdersView::class)]` -- entity class this entity depends on.
+
+List attributes (`Characteristics`, `DependsOn`, `Columns`, `Arguments`, `Events`) take one value or an array: `#[DependsOn([OrdersView::class, CustomersView::class])]`. Flag attributes default to `true`; pass `false` to disable an inherited flag. An attribute applies while the matching property is still at its default.
+
+```php
+use CalebDW\SqlEntities\Attributes\Connection;
+use CalebDW\SqlEntities\Attributes\DependsOn;
+use CalebDW\SqlEntities\Attributes\Name;
+
+#[Connection('reporting')]
+#[DependsOn(OrdersView::class)]
+#[Name('recent_orders')]
+class RecentOrdersView extends View
+{
+}
+```
+
+Functions must define a return type, and triggers must define a table, timing, and events. PHPStan reports a missing property or attribute when `vendor/calebdw/laravel-sql-entities/extension.neon` is included.
 
 ## Dependencies
 
-Declare dependencies so entities are created in the correct order (topologically sorted):
+Declare dependencies so entities are created in the correct order (topologically sorted). Prefer `#[DependsOn]`:
 
 ```php
+use CalebDW\SqlEntities\Attributes\DependsOn;
+
+#[DependsOn([OrdersView::class, CustomersView::class])]
 class RecentOrdersView extends View
 {
-    protected array $dependencies = [OrdersView::class];
-
-    // Or override the method for dynamic dependencies:
-    #[Override]
-    public function dependencies(): array
-    {
-        return [OrdersView::class];
-    }
 }
 ```
+
+Override `dependencies()` only when the list is dynamic. A method override replaces the attribute.
 
 ## Lifecycle Hooks
 

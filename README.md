@@ -153,7 +153,7 @@ class RecentOrdersView extends View
 }
 ```
 
-You can also override the name and connection:
+You can also override the name and connection with a property:
 
 ```php
 <?php
@@ -166,6 +166,63 @@ class RecentOrdersView extends View
     protected ?string $connection = 'other_connection';
 }
 ```
+
+Or with an attribute. An attribute is used while the property is at its default; assigning a different value at runtime takes precedence. `#[Connection]` accepts a string or a `UnitEnum`.
+
+```php
+<?php
+use CalebDW\SqlEntities\Attributes\Connection;
+use CalebDW\SqlEntities\Attributes\Name;
+
+#[Connection('other_connection')]
+#[Name('other_schema.other_name')]
+class RecentOrdersView extends View
+{
+}
+```
+
+#### 🏷️ Attributes
+
+Every configuration property has an attribute equivalent. Use one or the other. An attribute applies while the matching property is still at its default.
+
+| Attribute | Applies to | Replaces |
+| --- | --- | --- |
+| `#[Name]` | all entities | `$name` |
+| `#[Connection]` | all entities | `$connection` |
+| `#[Characteristics]` | all entities | `$characteristics` |
+| `#[DependsOn]` | all entities | `$dependencies` |
+| `#[Columns]` | views, materialized views | `$columns` |
+| `#[CheckOption]` | views | `$checkOption` |
+| `#[Recursive]` | views | `$recursive` |
+| `#[WithData]` | materialized views | `$withData` |
+| `#[Concurrent]` | materialized views | `$concurrent` |
+| `#[Arguments]` | functions, procedures | `$arguments` |
+| `#[Language]` | functions, procedures | `$language` |
+| `#[Returns]` | functions | `$returns` |
+| `#[Aggregate]` | functions | `$aggregate` |
+| `#[Loadable]` | functions | `$loadable` |
+| `#[Table]` | triggers | `$table` |
+| `#[Timing]` | triggers | `$timing` |
+| `#[Events]` | triggers | `$events` |
+| `#[Constraint]` | triggers | `$constraint` |
+
+List attributes accept one value or an array. Flag attributes default to `true`; pass `false` to turn an inherited flag off.
+
+```php
+<?php
+use CalebDW\SqlEntities\Attributes\Characteristics;
+use CalebDW\SqlEntities\Attributes\DependsOn;
+use CalebDW\SqlEntities\Attributes\Recursive;
+
+#[Characteristics('WITH SCHEMABINDING')]
+#[DependsOn([OrdersView::class, CustomersView::class])]
+#[Recursive]
+class RecentOrdersView extends View
+{
+}
+```
+
+Functions must define a return type, and triggers must define a table, timing, and events, either as a property or an attribute. PHPStan reports a missing definition. Include `vendor/calebdw/laravel-sql-entities/extension.neon`, or install `phpstan/extension-installer` to include it automatically.
 
 #### 🔁 Lifecycle Hooks
 
@@ -223,7 +280,7 @@ class RecentOrdersView extends View
 #### ⚙️ Handling Dependencies
 
 Entities may depend on one another (e.g., a view that selects from another view).
-To support this, each entity can declare its dependencies using the `dependencies()` method:
+To support this, each entity can declare its dependencies using the `$dependencies` property, the `#[DependsOn]` attribute, or the `dependencies()` method:
 
 ```php
 <?php

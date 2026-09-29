@@ -6,7 +6,8 @@ This package manages SQL entities (views, materialized views, functions, procedu
 
 - Entity classes live in `database/entities/` (any subdirectory structure).
 - Each entity extends `CalebDW\SqlEntities\View`, `CalebDW\SqlEntities\MaterializedView`, `CalebDW\SqlEntities\Function_`, `CalebDW\SqlEntities\Procedure`, or `CalebDW\SqlEntities\Trigger`.
-- Entity names default to `snake_case` of the class basename. Override via `protected ?string $name`.
+- Entity names default to `snake_case` of the class basename. Override with `#[CalebDW\SqlEntities\Attributes\Name]`, not a `$name` property.
+- Prefer attributes in `CalebDW\SqlEntities\Attributes` over properties: `#[Connection]`, `#[DependsOn]`, `#[Columns]`, `#[Returns]`, `#[Table]`, `#[Timing]`, `#[Events]`, and the other attribute classes. Properties are a fallback only.
 - Use the `sql-entities-development` skill for detailed implementation patterns.
 
 ### Quick Reference
