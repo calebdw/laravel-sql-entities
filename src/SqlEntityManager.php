@@ -57,15 +57,15 @@ class SqlEntityManager
         protected DatabaseManager $db,
         protected TopologicalSorter $sorter,
     ) {
-        $this->entities = $entities->keyBy(fn ($e) => $e::class);
+        $this->entities = $entities->keyBy(static fn ($e) => $e::class);
 
         $sorted = $this->sorter->sort(
             $this->entities,
             fn ($e) => collect($e->dependencies())->map($this->get(...)),
-            fn ($e) => $e::class,
+            static fn ($e) => $e::class,
         );
 
-        $this->entities = collect($sorted)->keyBy(fn ($e) => $e::class);
+        $this->entities = collect($sorted)->keyBy(static fn ($e) => $e::class);
     }
 
     /**
@@ -203,8 +203,8 @@ class SqlEntityManager
             ->reverse()
             ->when($connections, $this->filterByConnections(...))
             ->when($types, $this->filterByTypes(...))
-            ->when(! $force && $types === null, fn ($entities) => $entities->reject(
-                fn ($entity) => $entity instanceof RequiresExplicitDrop,
+            ->when(! $force && $types === null, static fn ($entities) => $entities->reject(
+                static fn ($entity) => $entity instanceof RequiresExplicitDrop,
             ))
             ->each($this->drop(...));
     }
@@ -246,7 +246,7 @@ class SqlEntityManager
         $this->entities
             ->when($connections, $this->filterByConnections(...))
             ->when($entities, $this->filterByTypes(...))
-            ->filter(fn ($entity) => $entity instanceof MaterializedView)
+            ->filter(static fn ($entity) => $entity instanceof MaterializedView)
             ->each(function ($entity) use ($concurrent) {
                 $connection = $this->connection($entity->connectionName());
                 $grammar    = $this->grammar($connection);
@@ -277,10 +277,10 @@ class SqlEntityManager
         $groups = $this->entities
             ->when($connections, $this->filterByConnections(...))
             ->when($types, $this->filterByTypes(...))
-            ->when(! $force && $types === null, fn ($entities) => $entities->reject(
-                fn ($entity) => $entity instanceof RequiresExplicitDrop,
+            ->when(! $force && $types === null, static fn ($entities) => $entities->reject(
+                static fn ($entity) => $entity instanceof RequiresExplicitDrop,
             ))
-            ->groupBy(fn ($e) => $e->connectionName() ?? $defaultConnection);
+            ->groupBy(static fn ($e) => $e->connectionName() ?? $defaultConnection);
 
         foreach ($groups as $connectionName => $entities) {
             $connection = $this->connection($connectionName);
@@ -325,7 +325,7 @@ class SqlEntityManager
         Collection $entities,
         array|string $types,
     ): Collection {
-        return $entities->filter(function ($entity) use ($types) {
+        return $entities->filter(static function ($entity) use ($types) {
             foreach (Arr::wrap($types) as $type) {
                 if (is_a($entity, $type, allow_string: false)) {
                     return true;
@@ -349,7 +349,7 @@ class SqlEntityManager
     ): Collection {
         $default = $this->db->getDefaultConnection();
 
-        return $entities->filter(function ($entity) use ($connections, $default) {
+        return $entities->filter(static function ($entity) use ($connections, $default) {
             $name = $entity->connectionName() ?? $default;
 
             return in_array($name, Arr::wrap($connections), strict: true);

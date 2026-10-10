@@ -13,4 +13,5 @@ CONTRIBUTING.md export-ignore
 pint.json export-ignore
 phpstan.neon.dist export-ignore
 phpunit.xml.dist export-ignore
+structarmed.php export-ignore
 testbench.yaml export-ignore

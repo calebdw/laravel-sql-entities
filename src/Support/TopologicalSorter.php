@@ -23,7 +23,7 @@ final class TopologicalSorter
     {
         $sorted  = [];
         $visited = [];
-        $getKey ??= fn ($node) => $node;
+        $getKey ??= static fn ($node) => $node;
 
         foreach ($nodes as $node) {
             $this->visit($node, $edges, $sorted, $visited, $getKey);

@@ -58,6 +58,9 @@ jobs:
       - name: Dump autoload
         run: composer dump-autoload --optimize
 
+      - name: Check architecture
+        run: vendor/bin/structarmed analyse
+
       - name: Execute tests
         run: composer test
 
