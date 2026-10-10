@@ -60,12 +60,12 @@ class ServiceProvider extends IlluminateServiceProvider
             Event::subscribe(SyncSqlEntities::class);
         }
 
-        $this->app->afterResolving(Schedule::class, function (Schedule $schedule) {
+        $this->app->afterResolving(Schedule::class, static function (Schedule $schedule) {
             $manager = resolve(SqlEntityManager::class);
 
             $manager->entities
-                ->filter(fn ($entity) => $entity instanceof MaterializedView)
-                ->each(function ($entity) use ($schedule) {
+                ->filter(static fn ($entity) => $entity instanceof MaterializedView)
+                ->each(static function ($entity) use ($schedule) {
                     $frequency = $entity->schedule(new Frequency());
 
                     if ($frequency === null) {
@@ -92,10 +92,10 @@ class ServiceProvider extends IlluminateServiceProvider
                     ->in($app->basePath())
                     ->path('database/entities'),
             ))
-            ->map(fn ($file) => (string) $file->getRealPath())
-            ->pipe(fn ($files) => collect($composer->classFromFile($files->all())))
-            ->filter(fn ($class) => is_subclass_of($class, SqlEntity::class))
-            ->map(fn ($class) => $app->make($class))
+            ->map(static fn ($file) => (string) $file->getRealPath())
+            ->pipe(static fn ($files) => collect($composer->classFromFile($files->all())))
+            ->filter(static fn ($class) => is_subclass_of($class, SqlEntity::class))
+            ->map(static fn ($class) => $app->make($class))
             ->values();
     }
 }

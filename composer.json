@@ -43,6 +43,7 @@
     "illuminate/support": "^12.0 || ^13.0"
   },
   "require-dev": {
+    "boundwize/structarmed": "^0.19.3",
     "calebdw/phpstan-laravel": "^1.0",
     "laravel/pint": "^1.16.2",
     "orchestra/testbench": "^10.0 || ^11.0",
@@ -74,6 +75,7 @@
     "test:lint": "pint --test",
     "test:lint-fix": "pint",
     "test:static": "phpstan analyze --ansi -v",
+    "test:architecture": "structarmed analyze",
     "test:unit": "@php -d zend.assertions=1 vendor/bin/pest --no-coverage",
     "test:coverage": [
       "@putenv XDEBUG_MODE=coverage",
@@ -82,6 +84,7 @@
     "test": [
       "@test:lint",
       "@test:static",
+      "@test:architecture",
       "@test:coverage"
     ],
     "lint": [
